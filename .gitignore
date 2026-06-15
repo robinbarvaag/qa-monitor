@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+.turbo
+*.log
+.env
+.env.local
+drizzle/meta
+.DS_Store
+__pycache__
+.venv
+venv
