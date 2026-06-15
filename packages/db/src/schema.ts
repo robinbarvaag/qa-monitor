@@ -57,16 +57,27 @@ export const run = pgTable("run", {
   error: text("error"),
 });
 
-/* ---------- web-validering (rik side-modell) ---------- */
-export const page = pgTable("page", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id")
-    .notNull()
-    .references(() => project.id, { onDelete: "cascade" }),
-  oldUrl: text("old_url"),
-  newUrl: text("new_url"),
-  sheetMeta: jsonb("sheet_meta").$type<Record<string, string>>().default({}),
-});
+/* ---------- web-validering (rik side-modell) ----------
+ * En `page` er ÉN overvåket URL (typisk hentet fra sitemap.xml). Stabil identitet
+ * på prosjektnivå, så oppfølging/trender overlever nye kjøringer.
+ * Migrering (gammel→ny) modelleres som to sider som deler `pairKey`. */
+export const page = pgTable(
+  "page",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    label: text("label"), // valgfri visningstekst
+    pairKey: text("pair_key"), // kobler ny↔gammel i migrerings-modus
+    meta: jsonb("meta").$type<Record<string, string>>().default({}), // sitemap lastmod, excel-ekstra
+  },
+  (t) => ({
+    urlUq: uniqueIndex("page_project_url_uq").on(t.projectId, t.url),
+    pairIdx: index("page_pair_idx").on(t.projectId, t.pairKey),
+  }),
+);
 
 export const pageResult = pgTable(
   "page_result",
@@ -78,7 +89,6 @@ export const pageResult = pgTable(
     pageId: uuid("page_id")
       .notNull()
       .references(() => page.id, { onDelete: "cascade" }),
-    column: text("column").notNull(), // 'old' | 'new'
     httpStatus: integer("http_status"),
     loadError: text("load_error"),
     // rike detaljer som jsonb
@@ -96,6 +106,8 @@ export const pageResult = pgTable(
   (t) => ({
     runIdx: index("page_result_run_idx").on(t.runId),
     pageIdx: index("page_result_page_idx").on(t.pageId),
+    // ett resultat per side per kjøring
+    runPageUq: uniqueIndex("page_result_run_page_uq").on(t.runId, t.pageId),
   }),
 );
 
@@ -131,7 +143,7 @@ export const annotation = pgTable(
     projectId: uuid("project_id")
       .notNull()
       .references(() => project.id, { onDelete: "cascade" }),
-    // f.eks. "<pageId>|new" for en side, eller en finding-fingerprint
+    // stabil id: en `<pageId>`, en migrerings-`pairKey`, eller en finding-fingerprint
     targetKey: text("target_key").notNull(),
     status: annotationStatus("status"),
     note: text("note"),

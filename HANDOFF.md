@@ -4,6 +4,16 @@ Kontekst-dokument for en Claude Code-instans som skal bygge dette videre.
 Les dette HELT før du skriver kode. Les også `README.md`, `packages/db/src/schema.ts`,
 `packages/core/src/*.ts`, og referanse-scriptet (se §6).
 
+> **Revisjon 2026-06-16 — primærmodell endret.** Dette dokumentet ble skrevet
+> migrerings-først (gammel↔ny url-par fra Excel). Vi har siden snudd: **primær bruk er
+> overvåking av mange levende nettsteder, med URL-er fra `sitemap.xml`** og per-side-QA
+> som kjerne. "Sammenligning" = først og fremst **trend over tid**; gammel↔ny side-om-side
+> er en **spesialmodus (migrering)**. Følger: `page` er generalisert til ÉN URL (+ valgfri
+> `pairKey`), `pageResult.column` er fjernet, og URL-sourcing styres av `source.config.mode`
+> (`sitemap | list | migration`, typet som `WebValidationConfig` i `@qa/core`). Se
+> [ROADMAP.md](ROADMAP.md) for gjeldende status. Der dette dokumentet sier "url-par" /
+> "gammel/ny" som *standard*, les det som *migrerings-modus*.
+
 ---
 
 ## 1. Hva vi bygger
@@ -74,16 +84,21 @@ Les `schema.ts` nøye. Modellen:
 - `source` — en pluggbar datakilde for et prosjekt: `web_validation | github`,
   med `config jsonb` (url-par/ark, eller repo + token).
 - `run` — én utførelse av en kilde på et tidspunkt → gir historikk/trender.
-- `page` + `page_result` — den RIKE web-valideringsmodellen (url-par + sheet-meta;
-  per-side-resultat med a11y/seo/links/keyboard/geo som jsonb, `screenshot_key`,
-  og indekserte summer `a11y_count`/`broken_count`/`seo_fail_count`).
+- `page` + `page_result` — den RIKE web-valideringsmodellen. **`page` = ÉN overvåket
+  URL** (`url`, valgfri `label`, valgfri `pairKey` for migrering, `meta` jsonb for
+  sitemap-`lastmod`/excel-ekstra). `page_result` = ett resultat per side per kjøring,
+  med a11y/seo/links/keyboard/geo som jsonb, `screenshot_key`, og indekserte summer
+  `a11y_count`/`broken_count`/`seo_fail_count`. Migrering: to sider med samme `pairKey`
+  vises side-om-side. (Tidligere `old_url`/`new_url`/`column` — fjernet, se revisjon øverst.)
 - `finding` — GENERISK funn-strøm. GitHub/Dependabot m.m. skriver hit
   (`kind`, `severity`, `subject`, stabil `fingerprint`, `title`, `data jsonb`).
 - `annotation` — oppfølging (`status: followup|done` + `note`) på PROSJEKTNIVÅ,
   knyttet til en stabil `target_key`, så markeringer overlever nye kjøringer.
 
-> Viktig mapping: Python-scriptet bruker kolonnenavn `gammel`/`ny`. I DB bruker vi
-> `old`/`new`. Workeren mapper `gammel→old`, `ny→new` når den skriver `page_result`.
+> Viktig mapping: Python-scriptet bruker kolonnenavn `gammel`/`ny` (migrerings-arket).
+> I den nye modellen er hver URL sin egen `page`. I **migrerings-modus** blir `gammel` og
+> `ny` to sider som deler `pairKey`. I **sitemap-modus** er det ingen par — hver sitemap-URL
+> blir én `page`.
 
 ---
 

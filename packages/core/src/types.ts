@@ -3,7 +3,6 @@
  * Valider Python-outputen mot denne (via JSON Schema generert fra disse
  * typene) i CI, så kan ikke de to sidene drifte fra hverandre.
  */
-export type Column = "old" | "new";
 export type Severity = "critical" | "serious" | "moderate" | "minor" | "info";
 export type SeoLevel = "fail" | "warn" | "ok";
 
@@ -44,10 +43,12 @@ export interface KeyboardResult {
   unreachableCount: number;
 }
 
-/** Resultat for én URL (old eller new) i én kjøring. */
+/** Resultat for én overvåket URL i én kjøring. */
 export interface PageResultData {
-  column: Column;
   url: string;
+  /** Valgfri migrerings-kobling: to sider med samme pairKey vises side-om-side. */
+  pairKey?: string | null;
+  label?: string | null;
   httpStatus: number | null;
   loadError: string | null;
   meta: Record<string, unknown>;
@@ -55,8 +56,25 @@ export interface PageResultData {
   seo: SeoItem[];
   links: LinkResult;
   keyboard: KeyboardResult | null;
+  geo?: Record<string, unknown> | null;
   screenshotKey: string | null;
 }
+
+/**
+ * `source.config` for en `web_validation`-kilde. Mode bestemmer hvordan URL-ene
+ * hentes; resten av workeren er lik. Sitemap er primærmodus; migration er
+ * spesialtilfellet (gammel→ny side-om-side).
+ */
+export type WebValidationConfig =
+  | {
+      mode: "sitemap";
+      url: string;
+      limit?: number;
+      includePaths?: string[];
+      excludePaths?: string[];
+    }
+  | { mode: "list"; urls: string[] }
+  | { mode: "migration"; pairs: Array<{ old: string; new: string; pairKey?: string }> };
 
 /** Et generisk funn fra hvilken som helst kilde (web, github/dependabot, …). */
 export interface FindingData {
