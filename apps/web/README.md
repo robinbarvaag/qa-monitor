@@ -1,27 +1,36 @@
-# apps/web — Next.js (App Router)
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Den visuelle delen. Scaffoldes inn her med shadcn:
+## Getting Started
+
+First, run the development server:
 
 ```bash
-cd apps/web
-bunx create-next-app@latest . --ts --app --tailwind --no-eslint --use-bun
-bunx shadcn@latest init        # shadcn/ui
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Ansvar:
-- Lese fra `@qa/db` (server components) og vise prosjekter, kjøringer, sammenligning gammel/ny, oppfølging.
-- Trigge nye kjøringer (skriver `run` + `enqueue` via `@qa/core` RunQueue).
-- GitHub/Dependabot-synk kan ligge her som server action / route handler (kun API-kall).
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Bruk `@qa/db` og `@qa/core` som workspace-avhengigheter:
-```jsonc
-// apps/web/package.json
-"dependencies": {
-  "@qa/db": "workspace:*",
-  "@qa/core": "workspace:*"
-}
-```
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-Fase 1 (ingen DB ennå): la en route lese en `report.json` fra dagens
-Python-validator og render sammenligningsvisningen med shadcn-komponenter.
-Det gjenbruker alt vi allerede har laget, med minimal ny infra.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
