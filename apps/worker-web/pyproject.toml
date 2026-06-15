@@ -1,0 +1,14 @@
+[project]
+name = "worker-web"
+version = "0.0.0"
+description = "qa-monitor web-valideringsworker (Python + Playwright)"
+requires-python = ">=3.11"
+dependencies = [
+  "playwright>=1.49",
+  "openpyxl>=3.1",
+  "pillow>=11.0",
+]
+
+# App, ikke en pakke som skal bygges/installeres.
+[tool.uv]
+package = false
