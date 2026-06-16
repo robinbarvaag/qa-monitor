@@ -42,6 +42,9 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 - [x] `lib/report.ts`: normaliser native `report.json` → typet UI-modell
 - [x] **Per side** (hovedvisning): tellekort + filtre (fritekstsøk, «bare a11y/brutte/lastefeil», SEO-nøkkel); ekspanderbar detalj (a11y/seo/tastatur/lenker)
 - [x] **Nettsted**-visning: robots/AI-bot allow-block, sitemaps, llms.txt
+- [x] **Dashboard-shell** (Vercel-aktig): sidebar-nav + topbar/breadcrumb, mørkt tema
+- [x] **Prosjektoversikt** (`/`): grid av nettsteds-kort med helse-%; detalj på `/p/[slug]`
+- [x] Flere nettsteder: hver `fixtures/<slug>.json` = ett prosjekt (uutilsynet + digdir)
 - [ ] Skjermbilder i fixturen + per-side-detalj (krever static-serving av `shots/`)
 - [ ] Sortering + reaktive tellekort som speiler aktivt filter
 - [ ] **Sammenlign** (migrerings-modus, sekundær): scoreboard med deltaer + gammel/ny side-om-side for sider som deler `pairKey`
@@ -87,6 +90,13 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 
 - **Config-pakke:** `@qa/config` holder tsconfig-presets (`base`/`nextjs`/`react-library`).
   Biome + turbo blir på rot (Biome fungerer best som én rot-config).
+- **TypeScript 6.0.3** i hele monorepoet. `@qa/ui` bruker `baseUrl`+`paths` (kreves av
+  shadcn-resolveren), stilnet med `ignoreDeprecations: "6.0"`. Ved TS 7 byttes til
+  `imports`-feltet i package.json.
+- **App-shell:** custom sidebar/topbar (shadcn-`sidebar`-blokken er stor + CLI-en feilet
+  på den; byttes inn senere ved behov). Mørkt tema som default (`<html class="dark">`).
+- **Prosjekt = nettsted:** Fase 1 leser `apps/web/fixtures/<slug>.json` per nettsted
+  (`lib/projects.ts`). I Fase 2 blir dette `project`-rader i DB.
 - **Delt UI:** shadcn-primitiver bor i `@qa/ui` (ikke i `apps/web`), konsumeres via package
   exports (`@qa/ui/components/ui/*`, `@qa/ui/lib/utils`). Apper transpilerer pakken
   (`transpilePackages`) og scanner den for Tailwind-klasser (`@source`). Tema/CSS blir

@@ -1,6 +1,8 @@
 {
   "extends": "@qa/config/tsconfig/react-library.json",
   "compilerOptions": {
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@qa/ui": ["./src"],
       "@qa/ui/lib/*": ["./src/lib/*"],

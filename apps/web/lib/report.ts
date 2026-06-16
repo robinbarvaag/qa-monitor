@@ -1,10 +1,7 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-
 /**
- * Leser den native `report.json` fra validatoren (snake_case) og normaliserer
- * den til en typet UI-modell (camelCase). Når Fase 2-workeren skriver det nye
- * formatet direkte til DB, byttes denne kilden ut — UI-modellen er stabil.
+ * Normaliserer den native `report.json` fra validatoren (snake_case) til en typet
+ * UI-modell (camelCase). Når Fase 2-workeren skriver det nye formatet direkte til
+ * DB, byttes kilden ut — UI-modellen her er stabil. Fil-lesing skjer i `projects.ts`.
  */
 
 /* ---------- native (snake_case) shape fra validate_pages.py ---------- */
@@ -243,7 +240,8 @@ function normalizeSite(s: RawSite): ReportSite {
   };
 }
 
-export function normalize(raw: RawReport): Report {
+export function normalize(input: RawReport | Record<string, unknown>): Report {
+  const raw = input as RawReport;
   const pages = (raw.pages ?? []).map(normalizePage);
   return {
     generated: str(raw.generated),
@@ -258,10 +256,4 @@ export function normalize(raw: RawReport): Report {
       seoFails: pages.reduce((n, p) => n + p.seoFailCount, 0),
     },
   };
-}
-
-export async function loadReport(): Promise<Report> {
-  const file = path.join(process.cwd(), "fixtures", "report.json");
-  const raw = JSON.parse(await readFile(file, "utf8")) as RawReport;
-  return normalize(raw);
 }

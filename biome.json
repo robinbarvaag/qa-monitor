@@ -18,7 +18,11 @@
   "overrides": [
     {
       "include": ["packages/ui/src/**"],
-      "linter": { "rules": { "a11y": { "noLabelWithoutControl": "off" } } }
+      "linter": {
+        "rules": {
+          "a11y": { "noLabelWithoutControl": "off", "useFocusableInteractive": "off" }
+        }
+      }
     }
   ]
 }

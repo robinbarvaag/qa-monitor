@@ -24,7 +24,7 @@
     "@types/react-dom": "^19",
     "shadcn": "^4.11.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^6.0.3"
   },
   "ignoreScripts": ["sharp", "unrs-resolver"],
   "trustedDependencies": ["sharp", "unrs-resolver"]
