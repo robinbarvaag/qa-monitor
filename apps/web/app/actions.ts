@@ -3,9 +3,11 @@
 import { type RunSummary, runSummarySchema } from "@/lib/analysis-schema";
 import { ANALYSIS_MODEL, analyzePerPage } from "@/lib/analyze";
 import { fetchDependabotAlerts } from "@/lib/github";
+import { type SitemapInfo, inspectSitemap } from "@/lib/sitemap";
 import { spawnWorker } from "@/lib/spawn-worker";
 import {
   type AnnotationStatus,
+  type RunOptions,
   type RunStatus,
   type SearchResults,
   enqueueRun,
@@ -14,6 +16,7 @@ import {
   getGithubSource,
   getLatestRunPages,
   getRunStatus,
+  getWebValidationConfig,
   runGithubFindings,
   saveAnnotation,
   saveRunAnalyses,
@@ -32,11 +35,22 @@ export async function saveAnnotationAction(
   revalidatePath(`/p/${slug}`);
 }
 
-export async function startRunAction(slug: string): Promise<{ runId: string } | { error: string }> {
-  const runId = await enqueueRun(slug);
+export async function startRunAction(
+  slug: string,
+  opts?: RunOptions,
+): Promise<{ runId: string } | { error: string }> {
+  const runId = await enqueueRun(slug, opts);
   if (!runId) return { error: "Fant ingen valideringskilde for prosjektet." };
   spawnWorker(runId);
   return { runId };
+}
+
+/** Pre-flight: teller sitemap-størrelse (eller melder fra om crawl-fallback). */
+export async function inspectSitemapAction(slug: string): Promise<SitemapInfo | { error: string }> {
+  const config = await getWebValidationConfig(slug);
+  const url = typeof config?.url === "string" ? config.url : null;
+  if (!url) return { error: "Fant ingen valideringskilde for prosjektet." };
+  return inspectSitemap(url);
 }
 
 export async function getRunStatusAction(runId: string): Promise<RunStatus | null> {

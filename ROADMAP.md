@@ -71,6 +71,7 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 - [x] `--run-id`-modus i workeren: leser køet `run` + `source.config`, setter status (queued→running→done/error), rapporterer progresjon
 - [x] «Kjør validering»-knapp → server action skriver `run` (queued) + spawner workeren (`uv run … --run-id`) detached fra Node (InlineRunQueue lokalt)
 - [x] Live progresjon via polling (`getRunStatusAction`, «Kjører d/N») + `router.refresh()` ved ferdig
+- [x] **Pre-flight + ETA + crawl-fallback:** «Kjør validering» teller sitemap-størrelse først ([lib/sitemap.ts](apps/web/lib/sitemap.ts)) → dialog med antall + anslått tid + velg alle/X; «~X min igjen» under kjøring; og **crawl-modus** (`--crawl` i validatoren, BFS samme origin) når `sitemap.xml` mangler. `enqueueRun(slug, {limit, mode})`.
 - [ ] Senere: SSE i stedet for polling; `RunQueue`-abstraksjon i `@qa/core`; kø for flere samtidige kjøringer
 
 ---

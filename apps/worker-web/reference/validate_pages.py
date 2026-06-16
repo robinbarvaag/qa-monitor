@@ -30,7 +30,7 @@ import re
 import urllib.request
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urldefrag, urljoin, urlparse
 
 from openpyxl import load_workbook
 from playwright.async_api import async_playwright
@@ -130,6 +130,59 @@ def read_sitemap(sitemap_url: str, limit: int | None):
     if limit and limit > 0:
         urls = urls[:limit]
     return [(i, "ny", u, {}) for i, u in enumerate(urls, start=1)]
+
+
+def _fetch_html(url: str) -> str | None:
+    """Henter HTML for crawl-traversering (hopper over ikke-HTML/feil)."""
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            ctype = resp.headers.get("Content-Type", "")
+            if "html" not in ctype.lower():
+                return None
+            charset = resp.headers.get_content_charset() or "utf-8"
+            return resp.read(2_000_000).decode(charset, errors="replace")
+    except Exception:
+        return None
+
+
+_HREF_RE = re.compile(r"""href=["']([^"'#]+)""", re.IGNORECASE)
+
+
+def crawl_site(base_url: str, limit: int | None):
+    """Fallback når sitemap mangler: bredde-først-traversering fra base_url,
+    følger interne lenker (samme origin). Samme form som read_sitemap.
+    Uten --limit settes et hardt tak på 100 sider."""
+    max_pages = limit if (limit and limit > 0) else 100
+    origin = urlparse(base_url).netloc
+    seen: set[str] = set()
+    order: list[str] = []
+    queue: list[str] = [base_url]
+
+    def norm(u: str) -> str:
+        u = urldefrag(u)[0]
+        p = urlparse(u)
+        if p.path in ("", "/"):
+            return f"{p.scheme}://{p.netloc}"
+        return u[:-1] if u.endswith("/") else u
+
+    while queue and len(order) < max_pages:
+        url = queue.pop(0)
+        key = norm(url)
+        if key in seen:
+            continue
+        seen.add(key)
+        html = _fetch_html(url)
+        if html is None:
+            continue
+        order.append(key)
+        for m in _HREF_RE.finditer(html):
+            link = urljoin(url, m.group(1).strip())
+            p = urlparse(link)
+            if p.scheme in ("http", "https") and p.netloc == origin and norm(link) not in seen:
+                queue.append(link)
+    print(f"Crawl fant {len(order)} sider (origin: {origin}).")
+    return [(i, "ny", u, {}) for i, u in enumerate(order, start=1)]
 
 
 def get_axe_source(cache: Path) -> str | None:
@@ -1863,7 +1916,10 @@ async def main():
                         help="Hent URL-er fra en sitemap.xml i stedet for Excel "
                              "(følger sitemap-index rekursivt). Hver URL blir én side.")
     parser.add_argument("--limit", type=int, default=None,
-                        help="Maks antall sider å crawle (nyttig med --sitemap)")
+                        help="Maks antall sider å crawle (nyttig med --sitemap/--crawl)")
+    parser.add_argument("--crawl", type=str, default=None, metavar="URL",
+                        help="Fallback når sitemap mangler: traverser nettstedet fra denne "
+                             "URL-en og følg interne lenker (samme origin).")
     args = parser.parse_args()
 
     # Rebuild-modus: bare regenerer HTML fra eksisterende JSON
@@ -1879,13 +1935,16 @@ async def main():
     if args.sitemap:
         print(f"Henter URL-er fra sitemap: {args.sitemap}")
         pages = read_sitemap(args.sitemap, args.limit)
+    elif args.crawl:
+        print(f"Crawler nettstedet fra: {args.crawl}")
+        pages = crawl_site(args.crawl, args.limit)
     elif args.excel:
         pages = read_pages(args.excel, args.only)
         if args.limit and args.limit > 0:
             pages = pages[: args.limit]
     else:
         raise SystemExit(
-            "Oppgi enten et Excel-ark eller --sitemap <url>, "
+            "Oppgi enten et Excel-ark, --sitemap <url> eller --crawl <url>, "
             "f.eks.: validate_pages.py --sitemap https://x.no/sitemap.xml --limit 20"
         )
     if not pages:

@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from urllib.parse import urlparse
 
 from . import db
 from .env import load_env
@@ -14,8 +15,18 @@ PROGRESS = re.compile(r"^\[(\d+)/(\d+)\]")
 REFERENCE = Path(__file__).resolve().parent.parent / "reference" / "validate_pages.py"
 
 
-def build_cmd(sitemap: str, workdir: Path, config: dict) -> list[str]:
-    cmd = [sys.executable, str(REFERENCE), "--sitemap", sitemap, "--out", str(workdir)]
+def _origin(url: str) -> str:
+    p = urlparse(url or "")
+    return f"{p.scheme}://{p.netloc}" if p.netloc else (url or "")
+
+
+def build_cmd(workdir: Path, config: dict) -> list[str]:
+    cmd = [sys.executable, str(REFERENCE), "--out", str(workdir)]
+    if config.get("mode") == "crawl":
+        base = config.get("base") or _origin(config.get("url", ""))
+        cmd += ["--crawl", base]
+    else:
+        cmd += ["--sitemap", config["url"]]
     if config.get("limit"):
         cmd += ["--limit", str(config["limit"])]
     if config.get("internalOnly"):
@@ -62,7 +73,7 @@ def run_by_id(run_id: str) -> None:
     workdir = Path(tempfile.mkdtemp(prefix="qa-worker-"))
     try:
         run_validator(
-            build_cmd(sitemap, workdir, config),
+            build_cmd(workdir, config),
             on_progress=lambda d, t: db.set_progress(run_id, d, t),
         )
         data = json.loads((workdir / "report.json").read_text(encoding="utf-8"))
@@ -83,7 +94,7 @@ def run_manual(args) -> None:
         "screenshots": not args.no_screenshots,
     }
     workdir = Path(tempfile.mkdtemp(prefix="qa-worker-"))
-    run_validator(build_cmd(args.sitemap, workdir, config))
+    run_validator(build_cmd(workdir, config))
     data = json.loads((workdir / "report.json").read_text(encoding="utf-8"))
     name = args.name
     if not name:

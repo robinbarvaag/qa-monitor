@@ -120,17 +120,47 @@ export async function loadLatestRun(slug: string): Promise<LatestRun | null> {
 /* ---------- trigge kjøringer (Fase 3) ---------- */
 
 export type RunStatusValue = "queued" | "running" | "done" | "error";
+export type RunMode = "sitemap" | "crawl";
+
+export interface RunOptions {
+  limit?: number | null;
+  mode?: RunMode;
+}
+
+/** Henter web_validation-kildens config (bl.a. sitemap-url) for et prosjekt. */
+export async function getWebValidationConfig(
+  slug: string,
+): Promise<Record<string, unknown> | null> {
+  const rows = await db
+    .select({ config: source.config })
+    .from(source)
+    .innerJoin(project, eq(project.id, source.projectId))
+    .where(and(eq(project.slug, slug), eq(source.type, "web_validation")))
+    .limit(1);
+  return rows[0]?.config ?? null;
+}
 
 /** Oppretter en køet `run` for prosjektets web_validation-kilde. */
-export async function enqueueRun(slug: string): Promise<string | null> {
+export async function enqueueRun(slug: string, opts?: RunOptions): Promise<string | null> {
   const rows = await db
-    .select({ sourceId: source.id })
+    .select({ sourceId: source.id, config: source.config })
     .from(source)
     .innerJoin(project, eq(project.id, source.projectId))
     .where(and(eq(project.slug, slug), eq(source.type, "web_validation")))
     .limit(1);
   const src = rows[0];
   if (!src) return null;
+
+  if (opts) {
+    const current = (src.config ?? {}) as Record<string, unknown>;
+    const config = {
+      ...current,
+      limit: opts.limit ?? null,
+      mode: opts.mode ?? (current.mode as RunMode | undefined) ?? "sitemap",
+    };
+    await db.update(source).set({ config }).where(eq(source.id, src.sourceId));
+  }
+
   const inserted = await db
     .insert(run)
     .values({ sourceId: src.sourceId, status: "queued" })
