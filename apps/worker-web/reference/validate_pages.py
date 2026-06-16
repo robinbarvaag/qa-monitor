@@ -763,6 +763,57 @@ async def check_site(context, origin, scheme):
     except Exception as e:
         site["soft_404"] = {"error": str(e)}
 
+    # www vs non-www: redirecter de til én kanonisk vert, eller svarer begge 200
+    # (da "slåss" de = duplikatinnhold + splittet SEO-signal).
+    try:
+        bare = origin.lower().removeprefix("www.")
+        www_host = "www." + bare
+        redirects = (301, 302, 303, 307, 308)
+
+        async def _probe_host(h):
+            try:
+                r = await context.request.get(
+                    f"{scheme}://{h}/", max_redirects=0, timeout=12000,
+                    headers={"User-Agent": UA},
+                )
+                return {"status": r.status, "location": r.headers.get("location")}
+            except Exception as e:
+                return {"error": str(e)}
+
+        www_res = await _probe_host(www_host)
+        bare_res = await _probe_host(bare)
+
+        def _redirects_to(res, target_host):
+            if res.get("status") in redirects:
+                try:
+                    return urlparse(res.get("location") or "").netloc.lower() == target_host
+                except Exception:
+                    return False
+            return False
+
+        www_200 = www_res.get("status") == 200
+        bare_200 = bare_res.get("status") == 200
+        conflict = www_200 and bare_200
+        canonical = None
+        if not conflict:
+            if bare_200 and _redirects_to(www_res, bare):
+                canonical = bare
+            elif www_200 and _redirects_to(bare_res, www_host):
+                canonical = www_host
+            elif bare_200 and not www_200:
+                canonical = bare
+            elif www_200 and not bare_200:
+                canonical = www_host
+
+        site["canonical_host"] = {
+            "www_status": www_res.get("status"),
+            "bare_status": bare_res.get("status"),
+            "conflict": conflict,
+            "canonical": canonical,
+        }
+    except Exception as e:
+        site["canonical_host"] = {"error": str(e)}
+
     return site
 
 

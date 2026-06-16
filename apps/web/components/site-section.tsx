@@ -54,6 +54,21 @@ export function SiteSection({ sites }: { sites: ReportSite[] }) {
                   </div>
                 )}
 
+                {site.canonicalConflict ? (
+                  <div className="flex items-start gap-2 rounded-lg bg-destructive/10 p-3 text-sm ring-1 ring-destructive/30">
+                    <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+                    <p>
+                      <span className="font-medium text-destructive">www vs. non-www:</span> begge
+                      svarer <span className="font-mono">200</span> uten å redirecte til hverandre.
+                      Da finnes siden på to adresser samtidig — søkemotorer ser duplikatinnhold og
+                      splitter ranking-signalene mellom dem. Velg én kanonisk vert og{" "}
+                      <span className="font-mono">301</span>-redirect den andre.
+                    </p>
+                  </div>
+                ) : (
+                  site.canonicalHost && <YesNo ok label={`Kanonisk vert: ${site.canonicalHost}`} />
+                )}
+
                 {bots.length > 0 && (
                   <div>
                     <div className="mb-1.5 text-xs font-medium text-muted-foreground uppercase">

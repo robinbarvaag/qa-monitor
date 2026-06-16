@@ -63,6 +63,7 @@ interface RawSite {
   llms_txt?: { exists: boolean; status?: number };
   llms_full_txt?: { exists: boolean; status?: number };
   soft_404?: { status?: number; is_soft_404?: boolean };
+  canonical_host?: { conflict?: boolean; canonical?: string | null };
 }
 interface RawReport {
   generated?: string;
@@ -170,6 +171,10 @@ export interface ReportSite {
   llmsFullTxt: boolean;
   /** Serveren svarer 200 på en URL som ikke finnes (soft 404). */
   softFound: boolean;
+  /** www og non-www svarer begge 200 (ingen redirect) – de konkurrerer. */
+  canonicalConflict: boolean;
+  /** Kanonisk vert når de er konsolidert (én redirecter til den andre). */
+  canonicalHost: string | null;
 }
 export interface Report {
   generated: string | null;
@@ -306,6 +311,8 @@ function normalizeSite(s: RawSite): ReportSite {
     llmsTxt: Boolean(s.llms_txt?.exists),
     llmsFullTxt: Boolean(s.llms_full_txt?.exists),
     softFound: Boolean(s.soft_404?.is_soft_404),
+    canonicalConflict: Boolean(s.canonical_host?.conflict),
+    canonicalHost: str(s.canonical_host?.canonical),
   };
 }
 
