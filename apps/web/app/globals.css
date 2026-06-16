@@ -87,7 +87,9 @@
   --destructive: #ec5014;
 
   --border: #e3e3e3;
-  --input: #8f8f8f;
+  /* Samme tone som --border, så input/select-kanter matcher outline-knapper og
+     MultiSelect (var #8f8f8f → mye mørkere og inkonsistent). */
+  --input: #e3e3e3;
   --ring: #98139c;
 
   --chart-1: #98139c;
