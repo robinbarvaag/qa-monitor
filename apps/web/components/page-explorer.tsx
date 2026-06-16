@@ -4,12 +4,14 @@ import { saveAnnotationAction } from "@/app/actions";
 import { Expandable } from "@/components/expandable";
 import { Metric, type MetricTone } from "@/components/metric";
 import { ScreenshotViewer } from "@/components/screenshot-viewer";
+import { SocialPreview } from "@/components/social-preview";
 import type { ReportPage } from "@/lib/report";
 import {
   SEVERITY_LABEL,
   impactBadge,
   impactDotClass,
   seoBadge,
+  seoHelp,
   severityBadge,
   worstImpact,
 } from "@/lib/ui-helpers";
@@ -21,7 +23,7 @@ import { Input } from "@qa/ui/input";
 import { MultiSelect } from "@qa/ui/multi-select";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@qa/ui/select";
 import { Textarea } from "@qa/ui/textarea";
-import { TooltipProvider } from "@qa/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@qa/ui/tooltip";
 import {
   AlertTriangle,
   ArrowUpDown,
@@ -29,6 +31,7 @@ import {
   ExternalLink,
   Flag,
   Gauge,
+  HelpCircle,
   Image as ImageIcon,
   Keyboard,
   Link2,
@@ -257,7 +260,8 @@ function PageRow({
               Tab-felle
             </Badge>
           )}
-          {page.seoFailCount > 0 && <Badge variant="secondary">SEO {page.seoFailCount}</Badge>}
+          {page.seoFailCount > 0 && <Badge variant="destructive">SEO {page.seoFailCount}</Badge>}
+          {page.seoWarnCount > 0 && <Badge variant="secondary">{page.seoWarnCount} forbedr.</Badge>}
           {page.jsDependent && <Badge variant="outline">JS</Badge>}
           {analysis && (
             <Badge variant="outline" className="border-primary/40 text-primary">
@@ -382,12 +386,23 @@ function PageRow({
               <p className="text-sm text-muted-foreground">Ingen SEO-data.</p>
             ) : (
               <ul className="space-y-1.5">
-                {page.seo.map((s) => (
-                  <li key={s.key} className="flex items-start gap-2 text-sm">
-                    <Badge variant={seoBadge(s.level)}>{s.level}</Badge>
-                    <span className="text-muted-foreground">{s.msg}</span>
-                  </li>
-                ))}
+                {page.seo.map((s) => {
+                  const help = s.level !== "ok" ? seoHelp(s.key) : null;
+                  return (
+                    <li key={s.key} className="flex items-start gap-2 text-sm">
+                      <Badge variant={seoBadge(s.level)}>{s.level}</Badge>
+                      <span className="text-muted-foreground">{s.msg}</span>
+                      {help && (
+                        <Tooltip>
+                          <TooltipTrigger className="mt-0.5 shrink-0 cursor-help text-muted-foreground/50 outline-none hover:text-foreground focus-visible:text-foreground">
+                            <HelpCircle className="size-3.5" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs text-pretty">{help}</TooltipContent>
+                        </Tooltip>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </DetailBlock>
@@ -457,6 +472,10 @@ function PageRow({
               </div>
             )}
           </DetailBlock>
+        </div>
+
+        <div className="mt-3">
+          <SocialPreview social={page.social} meta={page.meta} url={page.url} />
         </div>
 
         {page.perf && (

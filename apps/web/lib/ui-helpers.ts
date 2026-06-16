@@ -40,6 +40,30 @@ export function seoBadge(level: SeoLevel): BadgeVariant {
   return "outline";
 }
 
+/** Hvorfor en SEO/meta-sjekk betyr noe, slått opp på nøkkel-gruppe. */
+const SEO_HELP: Record<string, string> = {
+  title:
+    "Tittelen er den klikkbare overskriften i søkeresultater og delinger. Bør være unik og beskrivende, ~50–60 tegn.",
+  desc: "Meta description er sammendraget under tittelen i søk – påvirker om folk klikker. ~50–160 tegn.",
+  lang: "lang-attributtet på <html> forteller nettlesere og skjermlesere hvilket språk siden er på (uttale, oversettelse).",
+  canonical:
+    "Canonical peker på «original-URL-en» ved duplikatinnhold, så samme innhold ikke konkurrerer med seg selv i søk.",
+  viewport:
+    "Viewport-meta gjør at siden skalerer riktig på mobil. Uten den vises siden ofte som en zoomet-ut desktop-side.",
+  h1: "h1 er sidens hovedoverskrift – én per side. Viktig for både SEO og skjermlesere som bygger sidestrukturen.",
+  heading:
+    "Overskriftsnivåer bør være sammenhengende (h1→h2→h3). Hopp i nivå forvirrer skjermlesere og svekker strukturen.",
+  noindex:
+    "noindex hindrer søkemotorer i å indeksere siden – den vil ikke dukke opp i søk i det hele tatt.",
+  nofollow: "nofollow ber søkemotorer ignorere lenkene på siden for ranking.",
+  og: "Open Graph-tagger (og:title/description/image) styrer hvordan siden ser ut når den deles på Facebook, LinkedIn og Slack – og i AI-kort. Uten dem blir delingen tom/kjedelig.",
+  twitter: "twitter:card styrer hvordan siden ser ut når den deles på X/Twitter.",
+};
+
+export function seoHelp(key: string): string | null {
+  return SEO_HELP[key.split("-")[0] ?? ""] ?? null;
+}
+
 /* ---------- AI-analyse (Fase 4) ---------- */
 
 export const SEVERITY_LABEL: Record<AnalysisSeverity, string> = {

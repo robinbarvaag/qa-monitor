@@ -106,6 +106,14 @@ export interface PageKeyboard {
   ariaHiddenCount: number;
   unreachableCount: number;
 }
+export interface PageSocial {
+  ogTitle: string | null;
+  ogDescription: string | null;
+  ogImage: string | null;
+  ogSiteName: string | null;
+  ogType: string | null;
+  twitterCard: string | null;
+}
 export interface PagePerf {
   ttfbMs: number;
   dclMs: number;
@@ -144,8 +152,10 @@ export interface ReportPage {
   seo: SeoItem[];
   keyboard: PageKeyboard | null;
   perf: PagePerf | null;
+  social: PageSocial;
   jsDependent: boolean | null;
   seoFailCount: number;
+  seoWarnCount: number;
   /** Skjermbilde-filnavn (f.eks. "1_ny.jpg"); projects.ts gjør det til en URL. */
   screenshot: string | null;
 }
@@ -219,6 +229,18 @@ function normalizePerf(raw: unknown): PagePerf | null {
   };
 }
 
+function normalizeSocial(m: Record<string, unknown> = {}): PageSocial {
+  const og = (m.og ?? {}) as Record<string, unknown>;
+  return {
+    ogTitle: str(og.title),
+    ogDescription: str(og.description),
+    ogImage: str(og.image),
+    ogSiteName: str(og.site_name),
+    ogType: str(og.type),
+    twitterCard: str(m.twitter_card),
+  };
+}
+
 function normalizeKeyboard(k: RawKeyboard | null | undefined): PageKeyboard | null {
   if (!k) return null;
   return {
@@ -265,8 +287,10 @@ function normalizePage(p: RawPage): ReportPage {
     seo,
     keyboard: normalizeKeyboard(p.keyboard),
     perf: normalizePerf(p.meta?.perf),
+    social: normalizeSocial(p.meta),
     jsDependent: typeof jsDep === "boolean" ? jsDep : null,
     seoFailCount: seo.filter((s) => s.level === "fail").length,
+    seoWarnCount: seo.filter((s) => s.level === "warn").length,
     screenshot: p.shot ? (p.shot.split("/").pop() ?? null) : null,
   };
 }
