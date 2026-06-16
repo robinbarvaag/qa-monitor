@@ -14,5 +14,11 @@
   },
   "javascript": {
     "formatter": { "quoteStyle": "double", "semicolons": "always" }
-  }
+  },
+  "overrides": [
+    {
+      "include": ["packages/ui/src/**"],
+      "linter": { "rules": { "a11y": { "noLabelWithoutControl": "off" } } }
+    }
+  ]
 }

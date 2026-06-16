@@ -1,20 +1,53 @@
 import type { Report } from "@/lib/report";
-import { Card } from "@qa/ui/components/ui/card";
+import { Card } from "@qa/ui/card";
+import {
+  AlertTriangle,
+  FileWarning,
+  Link2Off,
+  ScanSearch,
+  ShieldAlert,
+  XOctagon,
+} from "lucide-react";
 
-function Stat({ label, value, tone }: { label: string; value: number; tone?: "bad" | "warn" }) {
-  const valueClass =
-    tone === "bad" && value > 0
+type Tone = "neutral" | "bad" | "warn";
+
+function Stat({
+  label,
+  value,
+  icon,
+  tone = "neutral",
+}: {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+  tone?: Tone;
+}) {
+  const active = value > 0 && tone !== "neutral";
+  const accent =
+    tone === "bad" && active
       ? "text-destructive"
-      : tone === "warn" && value > 0
-        ? "text-yellow-600 dark:text-yellow-500"
+      : tone === "warn" && active
+        ? "text-amber-600 dark:text-amber-500"
         : "text-foreground";
+  const iconWrap =
+    tone === "bad" && active
+      ? "bg-destructive/10 text-destructive"
+      : tone === "warn" && active
+        ? "bg-amber-500/10 text-amber-600 dark:text-amber-500"
+        : "bg-muted text-muted-foreground";
+
   return (
-    <Card size="sm" className="gap-1 px-4">
-      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-        {label}
+    <Card size="sm" className="flex-row items-center gap-3 px-4">
+      <div className={`grid size-9 shrink-0 place-content-center rounded-lg ${iconWrap}`}>
+        {icon}
       </div>
-      <div className={`font-heading text-2xl font-semibold tabular-nums ${valueClass}`}>
-        {value}
+      <div className="min-w-0">
+        <div className={`font-heading text-2xl leading-none font-semibold tabular-nums ${accent}`}>
+          {value}
+        </div>
+        <div className="mt-1 truncate text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          {label}
+        </div>
       </div>
     </Card>
   );
@@ -23,12 +56,37 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: "ba
 export function SummaryCards({ totals }: { totals: Report["totals"] }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-      <Stat label="Sider" value={totals.pages} />
-      <Stat label="A11y-brudd" value={totals.a11yViolations} tone="bad" />
-      <Stat label="Sider m/ a11y" value={totals.pagesWithA11y} tone="warn" />
-      <Stat label="Brutte lenker" value={totals.brokenLinks} tone="bad" />
-      <Stat label="SEO-feil" value={totals.seoFails} tone="warn" />
-      <Stat label="Lastefeil" value={totals.loadErrors} tone="bad" />
+      <Stat label="Sider" value={totals.pages} icon={<ScanSearch className="size-4.5" />} />
+      <Stat
+        label="A11y-brudd"
+        value={totals.a11yViolations}
+        tone="bad"
+        icon={<ShieldAlert className="size-4.5" />}
+      />
+      <Stat
+        label="Sider m/ a11y"
+        value={totals.pagesWithA11y}
+        tone="warn"
+        icon={<AlertTriangle className="size-4.5" />}
+      />
+      <Stat
+        label="Brutte lenker"
+        value={totals.brokenLinks}
+        tone="bad"
+        icon={<Link2Off className="size-4.5" />}
+      />
+      <Stat
+        label="SEO-feil"
+        value={totals.seoFails}
+        tone="warn"
+        icon={<FileWarning className="size-4.5" />}
+      />
+      <Stat
+        label="Lastefeil"
+        value={totals.loadErrors}
+        tone="bad"
+        icon={<XOctagon className="size-4.5" />}
+      />
     </div>
   );
 }

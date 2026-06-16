@@ -1,4 +1,11 @@
 {
   "extends": "@qa/config/tsconfig/react-library.json",
+  "compilerOptions": {
+    "paths": {
+      "@qa/ui": ["./src"],
+      "@qa/ui/lib/*": ["./src/lib/*"],
+      "@qa/ui/*": ["./src/*"]
+    }
+  },
   "include": ["src"]
 }

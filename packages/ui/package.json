@@ -4,13 +4,14 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./lib/utils": "./src/lib/utils.ts",
-    "./components/*": "./src/components/*.tsx"
+    "./lib/*": "./src/lib/*.ts",
+    "./*": "./src/*.tsx"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
     "lucide-react": "^1.18.0",
     "tailwind-merge": "^3.6.0"
   },

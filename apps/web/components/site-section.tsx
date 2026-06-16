@@ -1,6 +1,6 @@
 import type { ReportSite } from "@/lib/report";
-import { Badge } from "@qa/ui/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@qa/ui/components/ui/card";
+import { Badge } from "@qa/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@qa/ui/card";
 import { CheckCircle2, XCircle } from "lucide-react";
 
 function YesNo({ ok, label }: { ok: boolean; label: string }) {
