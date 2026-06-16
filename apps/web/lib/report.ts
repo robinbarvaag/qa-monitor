@@ -130,6 +130,8 @@ export interface ReportPage {
   keyboard: PageKeyboard | null;
   jsDependent: boolean | null;
   seoFailCount: number;
+  /** Skjermbilde-filnavn (f.eks. "1_ny.jpg"); projects.ts gjør det til en URL. */
+  screenshot: string | null;
 }
 export interface ReportSite {
   origin: string;
@@ -224,6 +226,7 @@ function normalizePage(p: RawPage): ReportPage {
     keyboard: normalizeKeyboard(p.keyboard),
     jsDependent: typeof jsDep === "boolean" ? jsDep : null,
     seoFailCount: seo.filter((s) => s.level === "fail").length,
+    screenshot: p.shot ? (p.shot.split("/").pop() ?? null) : null,
   };
 }
 

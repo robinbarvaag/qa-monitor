@@ -1,5 +1,5 @@
 {
-  "generated": "2026-06-16 18:23",
+  "generated": "2026-06-16 20:38",
   "source": "None",
   "pages": [
     {
@@ -135,7 +135,7 @@
         "unreachable_count": 0,
         "unreachable": []
       },
-      "shot": null,
+      "shot": "shots/1_ny.jpg",
       "combined_shot": null,
       "extra": {}
     },
@@ -269,7 +269,7 @@
         "unreachable_count": 0,
         "unreachable": []
       },
-      "shot": null,
+      "shot": "shots/2_ny.jpg",
       "combined_shot": null,
       "extra": {}
     },
@@ -403,7 +403,7 @@
         "unreachable_count": 0,
         "unreachable": []
       },
-      "shot": null,
+      "shot": "shots/3_ny.jpg",
       "combined_shot": null,
       "extra": {}
     },
@@ -537,7 +537,7 @@
         "unreachable_count": 0,
         "unreachable": []
       },
-      "shot": null,
+      "shot": "shots/4_ny.jpg",
       "combined_shot": null,
       "extra": {}
     },
@@ -671,7 +671,7 @@
         "unreachable_count": 0,
         "unreachable": []
       },
-      "shot": null,
+      "shot": "shots/5_ny.jpg",
       "combined_shot": null,
       "extra": {}
     },
@@ -805,7 +805,7 @@
         "unreachable_count": 0,
         "unreachable": []
       },
-      "shot": null,
+      "shot": "shots/6_ny.jpg",
       "combined_shot": null,
       "extra": {}
     },
@@ -939,7 +939,7 @@
         "unreachable_count": 0,
         "unreachable": []
       },
-      "shot": null,
+      "shot": "shots/7_ny.jpg",
       "combined_shot": null,
       "extra": {}
     },
@@ -1073,7 +1073,7 @@
         "unreachable_count": 0,
         "unreachable": []
       },
-      "shot": null,
+      "shot": "shots/8_ny.jpg",
       "combined_shot": null,
       "extra": {}
     },
@@ -1207,7 +1207,7 @@
         "unreachable_count": 0,
         "unreachable": []
       },
-      "shot": null,
+      "shot": "shots/9_ny.jpg",
       "combined_shot": null,
       "extra": {}
     },
@@ -1341,7 +1341,7 @@
         "unreachable_count": 0,
         "unreachable": []
       },
-      "shot": null,
+      "shot": "shots/10_ny.jpg",
       "combined_shot": null,
       "extra": {}
     }

@@ -47,8 +47,8 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 - [x] Flere nettsteder: hver `fixtures/<slug>.json` = ett prosjekt (uutilsynet + digdir)
 - [x] Sortering (sti/a11y/brutte/status) + reaktive tellinger (følg opp / ferdig)
 - [x] Per-rad status-UI (følg opp / ferdig + notat) — **i DB** (`annotation`), ikke localStorage
-- [ ] Skjermbilder i fixturen + per-side-detalj (krever static-serving av `shots/`)
-- [ ] **Sammenlign** (migrerings-modus, sekundær): scoreboard med deltaer + gammel/ny side-om-side for sider som deler `pairKey`
+- [x] Skjermbilder i per-side-detalj (downscalet til `public/shots/<slug>/`, vises i accordion)
+- [ ] **Sammenlign** (migrerings-modus, sekundær): scoreboard med deltaer + gammel/ny side-om-side for sider som deler `pairKey` — **venter på migrerings-data (Excel med gammel/ny-par)**
 - [x] **Akseptanse:** velg et nettsted → se per-side-QA fra sitemap med filtre + oppfølging
 
 ---

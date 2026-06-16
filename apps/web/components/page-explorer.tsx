@@ -16,6 +16,7 @@ import {
   Check,
   ExternalLink,
   Flag,
+  Image as ImageIcon,
   Keyboard,
   Link2,
   Search,
@@ -259,6 +260,29 @@ function PageRow({
             )}
           </DetailBlock>
         </div>
+
+        {page.screenshot && (
+          <div className="mt-6 space-y-2">
+            <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              <ImageIcon className="size-3.5" />
+              Skjermbilde
+            </div>
+            <a
+              href={page.screenshot}
+              target="_blank"
+              rel="noreferrer"
+              className="block max-h-112 overflow-hidden rounded-lg ring-1 ring-foreground/10"
+              title="Åpne i full størrelse"
+            >
+              <img
+                src={page.screenshot}
+                alt={`Skjermbilde av ${page.path}`}
+                loading="lazy"
+                className="w-full"
+              />
+            </a>
+          </div>
+        )}
       </AccordionContent>
     </AccordionItem>
   );

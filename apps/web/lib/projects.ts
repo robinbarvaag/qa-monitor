@@ -36,6 +36,10 @@ export async function loadProject(slug: string): Promise<Project | null> {
   try {
     const raw = JSON.parse(await readFile(path.join(FIXTURES_DIR, `${slug}.json`), "utf8"));
     const report = normalize(raw);
+    // Skjermbilder serveres fra apps/web/public/shots/<slug>/<fil>
+    for (const page of report.pages) {
+      if (page.screenshot) page.screenshot = `/shots/${slug}/${page.screenshot}`;
+    }
     return { slug, name: nameFor(slug, report), report };
   } catch {
     return null;

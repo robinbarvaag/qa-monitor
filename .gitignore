@@ -10,5 +10,5 @@ __pycache__
 .venv
 venv
 # Python-validator: crawl-output (report.json kopieres til apps/web/fixtures/)
-validering/
+validering*/
 axe.min.js
