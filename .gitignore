@@ -14,3 +14,5 @@ validering*/
 axe.min.js
 # Genererte skjermbilder (regenereres per kjøring; blob-store kommer senere)
 apps/web/public/shots/
+# Worker-logg (spawn-worker skriver hit)
+apps/worker-web/worker.log
