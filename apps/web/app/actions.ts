@@ -2,15 +2,19 @@
 
 import { type RunSummary, runSummarySchema } from "@/lib/analysis-schema";
 import { ANALYSIS_MODEL, analyzePerPage } from "@/lib/analyze";
+import { fetchDependabotAlerts } from "@/lib/github";
 import { spawnWorker } from "@/lib/spawn-worker";
 import {
   type AnnotationStatus,
   type RunStatus,
   type SearchResults,
   enqueueRun,
+  ensureGithubSource,
   ensureProject,
+  getGithubSource,
   getLatestRunPages,
   getRunStatus,
+  runGithubFindings,
   saveAnnotation,
   saveRunAnalyses,
   searchEverything,
@@ -41,6 +45,36 @@ export async function getRunStatusAction(runId: string): Promise<RunStatus | nul
 
 export async function searchAction(query: string): Promise<SearchResults> {
   return searchEverything(query);
+}
+
+/* ---------- GitHub / Dependabot (Fase 5) ---------- */
+
+export async function addGithubSourceAction(
+  slug: string,
+  owner: string,
+  repo: string,
+): Promise<{ ok: true } | { error: string }> {
+  const o = owner.trim().replace(/^@/, "");
+  const r = repo.trim();
+  if (!o || !r) return { error: "Oppgi både eier og repo." };
+  await ensureGithubSource(slug, o, r);
+  revalidatePath(`/p/${slug}`);
+  return { ok: true };
+}
+
+export async function runGithubScanAction(
+  slug: string,
+): Promise<{ findings: number } | { error: string }> {
+  try {
+    const src = await getGithubSource(slug);
+    if (!src) return { error: "Ingen GitHub-kilde koblet til prosjektet." };
+    const findings = await fetchDependabotAlerts(src.owner, src.repo);
+    const n = await runGithubFindings(slug, findings);
+    revalidatePath(`/p/${slug}`);
+    return { findings: n };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Skanningen feilet." };
+  }
 }
 
 /**

@@ -1,10 +1,17 @@
 import { AiAnalysisPanel } from "@/components/ai-analysis-panel";
+import { FindingsSection } from "@/components/findings-section";
 import { PageExplorer } from "@/components/page-explorer";
 import { RunButton } from "@/components/run-button";
 import { SiteSection } from "@/components/site-section";
 import { SummaryCards } from "@/components/summary-cards";
 import { loadProject } from "@/lib/projects";
-import { ensureProject, getAnnotations, getRunAnalyses } from "@qa/db";
+import {
+  ensureProject,
+  getAnnotations,
+  getGithubSource,
+  getLatestFindings,
+  getRunAnalyses,
+} from "@qa/db";
 import { Badge } from "@qa/ui/badge";
 import { Activity } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -20,6 +27,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   const projectId = await ensureProject(slug, project.name);
   const annotations = await getAnnotations(projectId);
   const analyses = await getRunAnalyses(slug);
+  const githubSource = await getGithubSource(slug);
+  const findings = githubSource ? await getLatestFindings(slug) : [];
 
   const { report } = project;
   // sti/URL → full URL, så AI-panelet kan gjøre side-referanser klikkbare
@@ -84,6 +93,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           pageAnalyses={analyses?.byUrl ?? {}}
         />
         <SiteSection sites={report.sites} />
+        <FindingsSection
+          slug={slug}
+          source={githubSource}
+          findings={findings}
+          initialAnnotations={annotations}
+        />
       </div>
     </div>
   );

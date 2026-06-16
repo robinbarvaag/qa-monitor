@@ -1,6 +1,6 @@
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { db } from "./client";
-import { analysis, annotation, page, pageResult, project, run, source } from "./schema";
+import { analysis, annotation, finding, page, pageResult, project, run, source } from "./schema";
 
 /**
  * Datatilgang for oppfølging (`annotation`). Holder drizzle-spørringene i
@@ -52,7 +52,7 @@ export async function listProjectRefs(): Promise<ProjectRef[]> {
     .from(project)
     .innerJoin(source, eq(source.projectId, project.id))
     .innerJoin(run, eq(run.sourceId, source.id))
-    .where(eq(run.status, "done"))
+    .where(and(eq(source.type, "web_validation"), eq(run.status, "done")))
     .orderBy(project.slug);
   return rows;
 }
@@ -85,7 +85,7 @@ export async function loadLatestRun(slug: string): Promise<LatestRun | null> {
     .from(run)
     .innerJoin(source, eq(source.id, run.sourceId))
     .innerJoin(project, eq(project.id, source.projectId))
-    .where(and(eq(project.slug, slug), eq(run.status, "done")))
+    .where(and(eq(project.slug, slug), eq(source.type, "web_validation"), eq(run.status, "done")))
     .orderBy(desc(run.finishedAt))
     .limit(1);
   const latest = runs[0];
@@ -214,7 +214,7 @@ async function latestDoneRunId(slug: string): Promise<string | null> {
     .from(run)
     .innerJoin(source, eq(source.id, run.sourceId))
     .innerJoin(project, eq(project.id, source.projectId))
-    .where(and(eq(project.slug, slug), eq(run.status, "done")))
+    .where(and(eq(project.slug, slug), eq(source.type, "web_validation"), eq(run.status, "done")))
     .orderBy(desc(run.finishedAt))
     .limit(1);
   return runs[0]?.id ?? null;
@@ -297,6 +297,131 @@ export async function getRunAnalyses(slug: string): Promise<RunAnalyses | null> 
     summary: summaryRow.content as unknown as RunSummaryContent,
     byUrl,
   };
+}
+
+/* ---------- GitHub / Dependabot-kilde (Fase 5) ---------- */
+
+export type FindingSeverity = "critical" | "serious" | "moderate" | "minor" | "info";
+
+export interface GithubConfig {
+  owner: string;
+  repo: string;
+}
+
+/** Ett Dependabot-funn klart for innskriving. */
+export interface FindingInput {
+  severity: FindingSeverity;
+  subject: string;
+  fingerprint: string;
+  title: string;
+  data: Record<string, unknown>;
+}
+
+/** Funn-rad for UI (fra siste github-kjøring). */
+export interface FindingRow {
+  severity: FindingSeverity;
+  subject: string | null;
+  fingerprint: string;
+  title: string;
+  data: Record<string, unknown>;
+}
+
+/** Henter github-kildens config (owner/repo) for et prosjekt, om den finnes. */
+export async function getGithubSource(slug: string): Promise<GithubConfig | null> {
+  const rows = await db
+    .select({ config: source.config })
+    .from(source)
+    .innerJoin(project, eq(project.id, source.projectId))
+    .where(and(eq(project.slug, slug), eq(source.type, "github")))
+    .limit(1);
+  const c = rows[0]?.config as Partial<GithubConfig> | undefined;
+  if (!c?.owner || !c.repo) return null;
+  return { owner: c.owner, repo: c.repo };
+}
+
+/** Oppretter/oppdaterer github-kilden for prosjektet (én per prosjekt). */
+export async function ensureGithubSource(slug: string, owner: string, repo: string): Promise<void> {
+  const projectId = await ensureProject(slug, slug);
+  const existing = await db
+    .select({ id: source.id })
+    .from(source)
+    .where(and(eq(source.projectId, projectId), eq(source.type, "github")))
+    .limit(1);
+  const config = { owner, repo };
+  const name = `${owner}/${repo}`;
+  if (existing[0]) {
+    await db.update(source).set({ config, name }).where(eq(source.id, existing[0].id));
+  } else {
+    await db.insert(source).values({ projectId, type: "github", name, config });
+  }
+}
+
+/** Oppretter en github-kjøring (status=done) og skriver funn-radene. */
+export async function runGithubFindings(slug: string, findings: FindingInput[]): Promise<number> {
+  const rows = await db
+    .select({ sourceId: source.id, projectId: source.projectId })
+    .from(source)
+    .innerJoin(project, eq(project.id, source.projectId))
+    .where(and(eq(project.slug, slug), eq(source.type, "github")))
+    .limit(1);
+  const src = rows[0];
+  if (!src) throw new Error("Ingen GitHub-kilde for prosjektet.");
+
+  const now = new Date();
+  const inserted = await db
+    .insert(run)
+    .values({
+      sourceId: src.sourceId,
+      status: "done",
+      startedAt: now,
+      finishedAt: now,
+      totals: { findings: findings.length },
+    })
+    .returning({ id: run.id });
+  const runId = inserted[0]?.id;
+  if (!runId) throw new Error("Kunne ikke opprette kjøring.");
+
+  if (findings.length > 0) {
+    await db.insert(finding).values(
+      findings.map((f) => ({
+        runId,
+        projectId: src.projectId,
+        kind: "dependency_vuln" as const,
+        severity: f.severity,
+        subject: f.subject,
+        fingerprint: f.fingerprint,
+        title: f.title,
+        data: f.data,
+      })),
+    );
+  }
+  return findings.length;
+}
+
+/** Funn fra siste fullførte github-kjøring for prosjektet. */
+export async function getLatestFindings(slug: string): Promise<FindingRow[]> {
+  const runs = await db
+    .select({ id: run.id })
+    .from(run)
+    .innerJoin(source, eq(source.id, run.sourceId))
+    .innerJoin(project, eq(project.id, source.projectId))
+    .where(and(eq(project.slug, slug), eq(source.type, "github"), eq(run.status, "done")))
+    .orderBy(desc(run.finishedAt))
+    .limit(1);
+  const runId = runs[0]?.id;
+  if (!runId) return [];
+
+  const rows = await db
+    .select({
+      severity: finding.severity,
+      subject: finding.subject,
+      fingerprint: finding.fingerprint,
+      title: finding.title,
+      data: finding.data,
+    })
+    .from(finding)
+    .where(eq(finding.runId, runId));
+  return rows.map((r) => ({ ...r, data: (r.data ?? {}) as Record<string, unknown> }));
 }
 
 /* ---------- globalt søk (⌘K) ---------- */

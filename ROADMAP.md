@@ -5,7 +5,7 @@ denne fila er *hvor vi er* og *hva som er neste*.
 
 Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck passerer og kjører).
 
-**Status nå:** Fase 0–4 ✅ (Sammenlign parkert) · AI-analyse streamer live (Vercel AI SDK) · globalt ⌘K-søk · Fase 5 neste
+**Status nå:** Fase 0–5 ✅ (Sammenlign parkert) · AI streamer live · ⌘K-søk · Dependabot-funn kodet (venter på `GITHUB_TOKEN` + repo) · GitHub App-flyt ved deploy
 
 > **Designendring (2026-06-16):** Primær bruk er **overvåking av mange levende
 > nettsteder**, med URL-er hentet fra `sitemap.xml`. Per-side-QA (a11y, skjermbilde,
@@ -97,11 +97,16 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 
 ---
 
-## Fase 5 — GitHub/Dependabot-kilde (TS)
+## Fase 5 — GitHub/Dependabot-kilde (TS) ✅ (kode) · ⏳ live venter på `GITHUB_TOKEN` + repo
 
-- [ ] Ny `source.type = github`, config `{ owner, repo, token }`
-- [ ] Runner i TS: `GET /repos/{owner}/{repo}/dependabot/alerts` → `finding`-rader (`kind=dependency_vuln`, severity, stabil `fingerprint`)
-- [ ] UI: findings per prosjekt med samme oppfølging (`annotation`)
+- [x] `source.type = github`, config `{ owner, repo }` (token i env, ikke DB)
+- [x] Runner i TS ([lib/github.ts](apps/web/lib/github.ts)): `GET /repos/{owner}/{repo}/dependabot/alerts` → `FindingInput[]` (severity-mapping high→serious osv., stabil `fingerprint = github:owner/repo:nr`)
+- [x] `@qa/db`: `ensureGithubSource` / `getGithubSource` / `runGithubFindings` (run+findings) / `getLatestFindings`
+- [x] Server actions: `addGithubSourceAction` (koble til repo) + `runGithubScanAction` (TS-runner, ingen subprocess)
+- [x] UI: [FindingsSection](apps/web/components/findings-section.tsx) — koble-til-form / «Skann Dependabot» / funn-liste (severity, pakke, fiks-versjon, GHSA/CVE-lenke) + samme oppfølging (`annotation` keyet på `fingerprint`)
+- [x] **Web-queries filtrert på `source.type=web_validation`** så github-kjøringer ikke forveksles med side-kjøringer
+- [ ] **Krever fine-grained `GITHUB_TOKEN` (`Dependabot alerts: read`) i `.env.local` + et repo** for live skann
+- [ ] Senere (egen fase ved deploy): GitHub App + better-auth «koble til»-flyt (bytter kun tilgangslaget, ikke funn-logikken)
 
 ---
 
