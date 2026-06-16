@@ -5,7 +5,7 @@ denne fila er *hvor vi er* og *hva som er neste*.
 
 Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck passerer og kjører).
 
-**Status nå:** Fase 0–5 ✅ (Sammenlign parkert) · AI streamer live · ⌘K-søk · Dependabot-funn kodet (venter på `GITHUB_TOKEN` + repo) · GitHub App-flyt ved deploy
+**Status nå:** Fase 0–5 ✅ (Sammenlign parkert) · AI streamer live · ⌘K-søk · Dependabot-funn live-verifisert · GitHub App-flyt gjenstår ved deploy
 
 > **Designendring (2026-06-16):** Primær bruk er **overvåking av mange levende
 > nettsteder**, med URL-er hentet fra `sitemap.xml`. Per-side-QA (a11y, skjermbilde,
@@ -97,7 +97,7 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 
 ---
 
-## Fase 5 — GitHub/Dependabot-kilde (TS) ✅ (kode) · ⏳ live venter på `GITHUB_TOKEN` + repo
+## Fase 5 — GitHub/Dependabot-kilde (TS) ✅ live-verifisert (14 funn fra robinbarvaag/shoppinglist)
 
 - [x] `source.type = github`, config `{ owner, repo }` (token i env, ikke DB)
 - [x] Runner i TS ([lib/github.ts](apps/web/lib/github.ts)): `GET /repos/{owner}/{repo}/dependabot/alerts` → `FindingInput[]` (severity-mapping high→serious osv., stabil `fingerprint = github:owner/repo:nr`)
@@ -105,7 +105,7 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 - [x] Server actions: `addGithubSourceAction` (koble til repo) + `runGithubScanAction` (TS-runner, ingen subprocess)
 - [x] UI: [FindingsSection](apps/web/components/findings-section.tsx) — koble-til-form / «Skann Dependabot» / funn-liste (severity, pakke, fiks-versjon, GHSA/CVE-lenke) + samme oppfølging (`annotation` keyet på `fingerprint`)
 - [x] **Web-queries filtrert på `source.type=web_validation`** så github-kjøringer ikke forveksles med side-kjøringer
-- [ ] **Krever fine-grained `GITHUB_TOKEN` (`Dependabot alerts: read`) i `.env.local` + et repo** for live skann
+- [x] **Live-verifisert:** fine-grained `GITHUB_TOKEN` (`Dependabot alerts: read` = `vulnerability_alerts`) → 14 funn (8 serious / 4 moderate / 2 minor) hentet fra robinbarvaag/shoppinglist og vist i UI
 - [ ] Senere (egen fase ved deploy): GitHub App + better-auth «koble til»-flyt (bytter kun tilgangslaget, ikke funn-logikken)
 
 ---
