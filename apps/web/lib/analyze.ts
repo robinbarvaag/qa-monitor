@@ -36,6 +36,14 @@ interface RawKeyboard {
   no_focus_count?: number;
   unreachable_count?: number;
 }
+interface RawPerf {
+  load_ms?: number;
+  weight_total?: number;
+  weight_img?: number;
+  weight_js?: number;
+  dom_nodes?: number;
+  img_oversized?: number;
+}
 
 function pathOf(url: string): string {
   try {
@@ -51,7 +59,19 @@ function digest(p: RunPageDetail) {
   const seo = (p.seo ?? []) as RawSeo[];
   const links = (p.links ?? {}) as RawLinks;
   const kb = (p.keyboard ?? null) as RawKeyboard | null;
+  const perf = ((p.meta ?? {}) as { perf?: RawPerf }).perf;
+  const kb2 = (n?: number) => (n ? Math.round(n / 1024) : 0);
   return {
+    perf: perf
+      ? {
+          loadMs: perf.load_ms ?? 0,
+          totalKb: kb2(perf.weight_total),
+          imgKb: kb2(perf.weight_img),
+          jsKb: kb2(perf.weight_js),
+          domNodes: perf.dom_nodes ?? 0,
+          oversizedImages: perf.img_oversized ?? 0,
+        }
+      : null,
     path: pathOf(p.url),
     httpStatus: p.httpStatus,
     loadError: p.loadError,
@@ -83,14 +103,18 @@ function digest(p: RunPageDetail) {
 /* ---------- prompts (delt mellom streaming-route og finish-action) ---------- */
 
 export const SUMMARY_SYSTEM =
-  "Du er en norsk QA-ekspert på web-tilgjengelighet (WCAG/axe), SEO og brukskvalitet. " +
+  "Du er en norsk QA-ekspert på web-tilgjengelighet (WCAG/axe), SEO, ytelse og brukskvalitet. " +
   "Du får deterministiske valideringsresultater for flere sider på ett nettsted. " +
   "Gi en kort, presis helhetsvurdering og prioriter de viktigste problemene på tvers av sider. " +
-  "Vær konkret og handlingsrettet. Svar på norsk (bokmål). Ikke finn på funn som ikke står i dataene.";
+  "Hver side har et `perf`-objekt (lastetid i ms, vekt i KB, bilde-vekt, DOM-noder, antall " +
+  "oversized bilder) — trekk inn ytelse der det er tungt (stor sidevekt, mange oversized bilder, " +
+  "treg last). Vær konkret og handlingsrettet. Svar på norsk (bokmål). Ikke finn på funn som ikke står i dataene.";
 
 export const PAGE_SYSTEM =
-  "Du er en norsk QA-ekspert på web-tilgjengelighet (WCAG/axe), SEO og tastaturnavigasjon. " +
+  "Du er en norsk QA-ekspert på web-tilgjengelighet (WCAG/axe), SEO, ytelse og tastaturnavigasjon. " +
   "Du vurderer én enkelt side ut fra deterministiske valideringsresultater. " +
+  "`perf` har lastetid (ms), sidevekt/bilde-vekt (KB), DOM-noder og oversized bilder — kommenter " +
+  "ytelse når det er et reelt problem (tung side, store bilder, treg last). " +
   "Gi en kort vurdering og konkrete, prioriterte fiks-forslag. Svar på norsk (bokmål). " +
   "Ikke finn på funn som ikke står i dataene; hvis siden er ren, si det.";
 

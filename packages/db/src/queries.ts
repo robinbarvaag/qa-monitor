@@ -266,6 +266,7 @@ export interface RunPageDetail {
   url: string;
   httpStatus: number | null;
   loadError: string | null;
+  meta: unknown;
   a11y: unknown;
   seo: unknown;
   links: unknown;
@@ -300,6 +301,7 @@ export async function getLatestRunPages(slug: string): Promise<LatestRunPages | 
       url: page.url,
       httpStatus: pageResult.httpStatus,
       loadError: pageResult.loadError,
+      meta: pageResult.meta,
       a11y: pageResult.a11y,
       seo: pageResult.seo,
       links: pageResult.links,

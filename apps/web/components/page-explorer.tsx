@@ -2,7 +2,7 @@
 
 import { saveAnnotationAction } from "@/app/actions";
 import { Expandable } from "@/components/expandable";
-import { Metric } from "@/components/metric";
+import { Metric, type MetricTone } from "@/components/metric";
 import { ScreenshotViewer } from "@/components/screenshot-viewer";
 import type { ReportPage } from "@/lib/report";
 import {
@@ -28,6 +28,7 @@ import {
   Check,
   ExternalLink,
   Flag,
+  Gauge,
   Image as ImageIcon,
   Keyboard,
   Link2,
@@ -111,6 +112,79 @@ function LinkRow({
         {url}
       </a>
     </li>
+  );
+}
+
+function fmtBytes(b: number): string {
+  if (b >= 1024 * 1024) return `${(b / 1024 / 1024).toFixed(1)} MB`;
+  if (b >= 1024) return `${Math.round(b / 1024)} KB`;
+  return `${b} B`;
+}
+function fmtMs(ms: number): string {
+  if (!ms) return "–";
+  return ms >= 1000 ? `${(ms / 1000).toFixed(1)} s` : `${ms} ms`;
+}
+function band(v: number, good: number, warn: number): MetricTone {
+  return v <= good ? "good" : v <= warn ? "warn" : "bad";
+}
+
+function PerfBlock({ perf }: { perf: NonNullable<ReportPage["perf"]> }) {
+  const loadMs = perf.loadMs || perf.dclMs;
+  return (
+    <DetailBlock icon={<Gauge className="size-3.5" />} title="Ytelse">
+      <div className="grid auto-rows-fr grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        <Metric
+          label="Lastetid"
+          value={fmtMs(loadMs)}
+          tone={loadMs ? band(loadMs, 2000, 4000) : "default"}
+          hint="Tid til «load»-hendelsen (eller DOMContentLoaded). Under ~2 s er bra."
+        />
+        <Metric
+          label="Sidevekt"
+          value={fmtBytes(perf.weightTotal)}
+          tone={band(perf.weightTotal, 1_500_000, 3_000_000)}
+          hint="Total overført vekt. Tilnærmet — kryss-origin-ressurser uten Timing-Allow-Origin teller ikke alltid med."
+        />
+        <Metric
+          label="Bilder"
+          value={fmtBytes(perf.weightImg)}
+          tone={band(perf.weightImg, 800_000, 2_000_000)}
+          hint="Samlet bilde-vekt. Ofte den største og enkleste gevinsten å kutte."
+        />
+        <Metric
+          label="DOM-noder"
+          value={perf.domNodes.toLocaleString("nb-NO")}
+          tone={band(perf.domNodes, 1500, 3000)}
+          hint="Antall DOM-elementer. Stor DOM gjør siden tregere å rendre og style."
+        />
+        <Metric
+          label="Store bilder"
+          value={perf.imgOversized}
+          tone={perf.imgOversized === 0 ? "good" : perf.imgOversized <= 2 ? "warn" : "bad"}
+          hint="Bilder levert mye større enn de faktisk vises (≥1,5×). Lever riktig størrelse for å spare vekt."
+        />
+      </div>
+
+      {perf.imgOversizedExamples.length > 0 && (
+        <ul className="space-y-1 text-xs text-muted-foreground">
+          {perf.imgOversizedExamples.slice(0, 4).map((ex) => (
+            <li key={ex.src} className="flex items-center gap-2">
+              <Badge variant="secondary">
+                {ex.naturalW}px → {ex.displayW}px
+              </Badge>
+              <a
+                href={ex.src}
+                target="_blank"
+                rel="noreferrer"
+                className="truncate hover:text-primary hover:underline"
+              >
+                {ex.src.split("/").pop()}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </DetailBlock>
   );
 }
 
@@ -384,6 +458,12 @@ function PageRow({
             )}
           </DetailBlock>
         </div>
+
+        {page.perf && (
+          <div className="mt-3">
+            <PerfBlock perf={page.perf} />
+          </div>
+        )}
 
         {page.screenshot && (
           <div className="mt-6 space-y-2">

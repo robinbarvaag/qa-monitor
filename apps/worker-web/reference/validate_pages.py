@@ -265,6 +265,48 @@ JS_META = """() => {
     };
 }"""
 
+# Ytelse/vekt via Performance-API-et + bilde-dimensjoner. Vekt er tilnærmet:
+# transferSize er 0 for kryss-origin-ressurser uten Timing-Allow-Origin.
+JS_PERF = """() => {
+    const nav = performance.getEntriesByType('navigation')[0] || {};
+    const res = performance.getEntriesByType('resource') || [];
+    const byType = {};
+    let total = 0;
+    for (const r of res) {
+        const sz = r.transferSize || r.encodedBodySize || 0;
+        total += sz;
+        const t = r.initiatorType || 'other';
+        byType[t] = (byType[t] || 0) + sz;
+    }
+    const heaviest = res
+        .map(r => ({ url: r.name, bytes: r.transferSize || r.encodedBodySize || 0, type: r.initiatorType || 'other' }))
+        .filter(r => r.bytes > 0)
+        .sort((a, b) => b.bytes - a.bytes)
+        .slice(0, 6);
+    const dpr = window.devicePixelRatio || 1;
+    const oversized = [];
+    for (const im of document.querySelectorAll('img')) {
+        const dispW = Math.round(im.clientWidth * dpr);
+        if (im.naturalWidth && im.clientWidth > 1 && im.naturalWidth > dispW * 1.5) {
+            oversized.push({ src: im.currentSrc || im.src, naturalW: im.naturalWidth, displayW: im.clientWidth });
+        }
+    }
+    return {
+        ttfb_ms: Math.round(nav.responseStart || 0),
+        dcl_ms: Math.round(nav.domContentLoadedEventEnd || 0),
+        load_ms: Math.round(nav.loadEventEnd || 0),
+        weight_total: total,
+        weight_img: byType.img || 0,
+        weight_js: byType.script || 0,
+        weight_css: (byType.link || 0) + (byType.css || 0),
+        resource_count: res.length,
+        dom_nodes: document.getElementsByTagName('*').length,
+        img_oversized: oversized.length,
+        img_oversized_examples: oversized.slice(0, 5),
+        heaviest,
+    };
+}"""
+
 JS_LINKS = """() => {
     const out = new Map();
     for (const a of document.querySelectorAll('a[href]')) {
@@ -797,6 +839,12 @@ async def analyze(
         entry["ok"] = bool(resp and resp.ok)
 
         entry["meta"] = await page.evaluate(JS_META)
+        try:
+            perf = await page.evaluate(JS_PERF)
+            if isinstance(entry["meta"], dict):
+                entry["meta"]["perf"] = perf
+        except Exception:
+            pass
 
         if axe_src:
             try:

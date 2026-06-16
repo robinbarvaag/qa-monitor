@@ -106,6 +106,20 @@ export interface PageKeyboard {
   ariaHiddenCount: number;
   unreachableCount: number;
 }
+export interface PagePerf {
+  ttfbMs: number;
+  dclMs: number;
+  loadMs: number;
+  weightTotal: number;
+  weightImg: number;
+  weightJs: number;
+  weightCss: number;
+  resourceCount: number;
+  domNodes: number;
+  imgOversized: number;
+  imgOversizedExamples: { src: string; naturalW: number; displayW: number }[];
+  heaviest: { url: string; bytes: number; type: string }[];
+}
 export interface PageMeta {
   title: string | null;
   titleLength: number | null;
@@ -129,6 +143,7 @@ export interface ReportPage {
   links: PageLinks;
   seo: SeoItem[];
   keyboard: PageKeyboard | null;
+  perf: PagePerf | null;
   jsDependent: boolean | null;
   seoFailCount: number;
   /** Skjermbilde-filnavn (f.eks. "1_ny.jpg"); projects.ts gjør det til en URL. */
@@ -182,6 +197,28 @@ function normalizeMeta(m: Record<string, unknown> = {}): PageMeta {
   };
 }
 
+function normalizePerf(raw: unknown): PagePerf | null {
+  if (!raw || typeof raw !== "object") return null;
+  const p = raw as Record<string, unknown>;
+  const arr = <T>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
+  return {
+    ttfbMs: num(p.ttfb_ms),
+    dclMs: num(p.dcl_ms),
+    loadMs: num(p.load_ms),
+    weightTotal: num(p.weight_total),
+    weightImg: num(p.weight_img),
+    weightJs: num(p.weight_js),
+    weightCss: num(p.weight_css),
+    resourceCount: num(p.resource_count),
+    domNodes: num(p.dom_nodes),
+    imgOversized: num(p.img_oversized),
+    imgOversizedExamples: arr<{ src: string; naturalW: number; displayW: number }>(
+      p.img_oversized_examples,
+    ),
+    heaviest: arr<{ url: string; bytes: number; type: string }>(p.heaviest),
+  };
+}
+
 function normalizeKeyboard(k: RawKeyboard | null | undefined): PageKeyboard | null {
   if (!k) return null;
   return {
@@ -227,6 +264,7 @@ function normalizePage(p: RawPage): ReportPage {
     links,
     seo,
     keyboard: normalizeKeyboard(p.keyboard),
+    perf: normalizePerf(p.meta?.perf),
     jsDependent: typeof jsDep === "boolean" ? jsDep : null,
     seoFailCount: seo.filter((s) => s.level === "fail").length,
     screenshot: p.shot ? (p.shot.split("/").pop() ?? null) : null,
