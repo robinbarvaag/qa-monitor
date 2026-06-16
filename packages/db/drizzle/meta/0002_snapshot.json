@@ -1,6 +1,6 @@
 {
-  "id": "fce46483-19a9-4b5f-a072-5f7ec678181d",
-  "prevId": "8171db7d-bcbb-45b3-bc0b-53a8ba8088bb",
+  "id": "bc1cb6c4-eef1-415d-a6ba-fe8b6cec16af",
+  "prevId": "fce46483-19a9-4b5f-a072-5f7ec678181d",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -567,6 +567,12 @@
         },
         "totals": {
           "name": "totals",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data": {
+          "name": "data",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false

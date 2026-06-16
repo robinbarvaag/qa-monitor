@@ -1,14 +1,11 @@
-import { readFile, readdir } from "node:fs/promises";
-import path from "node:path";
+import { type RawPageRow, listProjectRefs, loadLatestRun } from "@qa/db";
 import { type Report, normalize } from "./report";
 
 /**
- * Fase 1: hvert overvåket nettsted er en `fixtures/<slug>.json` (native validator-
- * output). Legg til et nettsted ved å droppe en ny fil. I Fase 2 erstattes dette av
- * `project`-rader i DB.
+ * Rapportdata leses fra DB (siste fullførte kjøring per prosjekt). Workeren
+ * (`apps/worker-web`) fyller tabellene. De native jsonb-detaljene mates gjennom
+ * den samme normalizeren som før, så UI-modellen er uendret.
  */
-
-const FIXTURES_DIR = path.join(process.cwd(), "fixtures");
 
 export interface Project {
   slug: string;
@@ -16,38 +13,44 @@ export interface Project {
   report: Report;
 }
 
-function nameFor(slug: string, report: Report): string {
-  return report.sites[0]?.origin ?? slug;
+function toRawPage(r: RawPageRow): Record<string, unknown> {
+  const status = r.httpStatus;
+  return {
+    url: r.url,
+    status,
+    ok: !r.loadError && (status == null || status < 400),
+    load_error: r.loadError,
+    meta: r.meta ?? {},
+    a11y: r.a11y ?? {},
+    seo: r.seo ?? [],
+    links: r.links ?? {},
+    keyboard: r.keyboard ?? null,
+    geo: r.geo ?? {},
+    shot: r.screenshotKey,
+  };
 }
 
 export async function listProjectSlugs(): Promise<string[]> {
-  try {
-    const files = await readdir(FIXTURES_DIR);
-    return files
-      .filter((f) => f.endsWith(".json"))
-      .map((f) => f.replace(/\.json$/, ""))
-      .sort();
-  } catch {
-    return [];
-  }
+  return (await listProjectRefs()).map((p) => p.slug);
 }
 
 export async function loadProject(slug: string): Promise<Project | null> {
-  try {
-    const raw = JSON.parse(await readFile(path.join(FIXTURES_DIR, `${slug}.json`), "utf8"));
-    const report = normalize(raw);
-    // Skjermbilder serveres fra apps/web/public/shots/<slug>/<fil>
-    for (const page of report.pages) {
-      if (page.screenshot) page.screenshot = `/shots/${slug}/${page.screenshot}`;
-    }
-    return { slug, name: nameFor(slug, report), report };
-  } catch {
-    return null;
+  const latest = await loadLatestRun(slug);
+  if (!latest) return null;
+  const report = normalize({
+    generated: latest.generated,
+    pages: latest.pages.map(toRawPage),
+    sites: latest.sites,
+  });
+  // Skjermbilder serveres fra apps/web/public/shots/<slug>/<fil>
+  for (const page of report.pages) {
+    if (page.screenshot) page.screenshot = `/shots/${slug}/${page.screenshot}`;
   }
+  return { slug, name: latest.name, report };
 }
 
 export async function listProjects(): Promise<Project[]> {
-  const slugs = await listProjectSlugs();
-  const loaded = await Promise.all(slugs.map(loadProject));
+  const refs = await listProjectRefs();
+  const loaded = await Promise.all(refs.map((r) => loadProject(r.slug)));
   return loaded.filter((p): p is Project => p !== null);
 }

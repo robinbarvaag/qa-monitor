@@ -124,9 +124,14 @@ def ingest(slug: str, name: str, sitemap: str, limit: int | None, data: dict, wo
                     ),
                 )
 
+            run_data = {
+                "generated": data.get("generated"),
+                "sites": data.get("sites") or {},
+            }
             cur.execute(
-                "update run set status = 'done', finished_at = now(), totals = %s where id = %s",
-                (Json(totals), run_id),
+                """update run set status = 'done', finished_at = now(),
+                   totals = %s, data = %s where id = %s""",
+                (Json(totals), Json(run_data), run_id),
             )
         conn.commit()
 

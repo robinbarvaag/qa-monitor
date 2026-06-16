@@ -3,6 +3,9 @@ import { listProjects } from "@/lib/projects";
 import { Button } from "@qa/ui/button";
 import { Plus } from "lucide-react";
 
+// Prosjekter leses fra DB → dynamisk render.
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const projects = await listProjects();
 

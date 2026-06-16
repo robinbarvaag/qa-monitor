@@ -54,6 +54,8 @@ export const run = pgTable("run", {
   startedAt: timestamp("started_at", { withTimezone: true }),
   finishedAt: timestamp("finished_at", { withTimezone: true }),
   totals: jsonb("totals").$type<Record<string, number>>(),
+  // kjøring-nivå ekstra: { generated, sites } (nettsted-data: robots/llms/AI-bot)
+  data: jsonb("data").$type<Record<string, unknown>>(),
   error: text("error"),
 });
 

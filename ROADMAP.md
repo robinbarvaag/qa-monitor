@@ -5,7 +5,7 @@ denne fila er *hvor vi er* og *hva som er neste*.
 
 Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck passerer og kjører).
 
-**Status nå:** Fase 0 ✅ · Fase 1 ✅ (Sammenlign parkert) · Fase 2 i gang 🚧
+**Status nå:** Fase 0 ✅ · Fase 1 ✅ (Sammenlign parkert) · Fase 2 ✅ (app leser fra Neon) · Fase 3 neste
 
 > **Designendring (2026-06-16):** Primær bruk er **overvåking av mange levende
 > nettsteder**, med URL-er hentet fra `sitemap.xml`. Per-side-QA (a11y, skjermbilde,
@@ -58,10 +58,11 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 - [x] `DATABASE_URL` (Neon) wiret; root `.env.local` lastes av både drizzle-kit og Next (`@qa/db` env-loader)
 - [x] `bun db:generate && bun db:migrate` → alle 7 tabeller i Neon
 - [x] Oppfølging → `annotation` via `@qa/db`-queries + server action (verifisert round-trip)
-- [ ] Refaktorer Python-scriptet til `apps/worker-web` (`python -m worker_web --run-id <uuid>`)
-- [ ] Worker leser `source.config.mode` (`sitemap | list | migration`), upserter `page`-rader (én per URL, sitemap = primær), skriver `page_result` + skjermbilder via lokal-disk-`BlobStore`; setter `run.status`
-- [ ] Appen leser **rapportdata** fra DB i stedet for fixture (oppfølging er allerede i DB)
-- [ ] **Akseptanse:** worker → rader i DB → app viser dem; oppfølging overlever ny kjøring
+- [x] `apps/worker-web/worker_web` (`python -m worker_web --project … --sitemap …`): driver validatoren, skriver `project`/`source`/`run`/`page`/`page_result` + `meta`/`run.data` via psycopg; downscaler skjermbilder
+- [x] Appen leser **rapportdata** fra DB (`@qa/db`-queries + normalizer); fixtures fjernet
+- [x] **Akseptanse:** worker → rader i Neon → app viser dem (oversikt + per-side + Nettsted); oppfølging overlever ny kjøring
+- [ ] Worker skriver `page_result` fortløpende (nå: batch til slutt) + lokal-disk-`BlobStore`-adapter for skjermbilder
+- [ ] `--run-id`-modus (leser køet `run` fra DB) — bro til Fase 3
 
 ---
 
