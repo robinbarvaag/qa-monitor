@@ -1,6 +1,7 @@
 "use client";
 
 import { saveAnnotationAction } from "@/app/actions";
+import { ScreenshotViewer } from "@/components/screenshot-viewer";
 import type { ReportPage } from "@/lib/report";
 import { impactBadge, impactDotClass, seoBadge, worstImpact } from "@/lib/ui-helpers";
 import type { AnnotationEntry, AnnotationMap, AnnotationStatus } from "@qa/db";
@@ -267,20 +268,7 @@ function PageRow({
               <ImageIcon className="size-3.5" />
               Skjermbilde
             </div>
-            <a
-              href={page.screenshot}
-              target="_blank"
-              rel="noreferrer"
-              className="block max-h-112 overflow-hidden rounded-lg ring-1 ring-foreground/10"
-              title="Åpne i full størrelse"
-            >
-              <img
-                src={page.screenshot}
-                alt={`Skjermbilde av ${page.path}`}
-                loading="lazy"
-                className="w-full"
-              />
-            </a>
+            <ScreenshotViewer src={page.screenshot} label={page.path} />
           </div>
         )}
       </AccordionContent>
