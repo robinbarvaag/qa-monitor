@@ -1,7 +1,6 @@
+import { AddProjectDialog } from "@/components/add-project-dialog";
 import { ProjectCard } from "@/components/project-card";
 import { listProjects } from "@/lib/projects";
-import { Button } from "@qa/ui/button";
-import { Plus } from "lucide-react";
 
 // Prosjekter leses fra DB → dynamisk render.
 export const dynamic = "force-dynamic";
@@ -16,17 +15,13 @@ export default async function Home() {
           <h1 className="font-heading text-2xl font-bold">Prosjekter</h1>
           <p className="text-sm text-muted-foreground">{projects.length} overvåkede nettsteder</p>
         </div>
-        <Button variant="outline" size="sm" disabled title="Kommer senere">
-          <Plus className="size-4" />
-          Legg til nettsted
-        </Button>
+        <AddProjectDialog />
       </div>
 
       {projects.length === 0 ? (
         <p className="rounded-xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-          Ingen prosjekter ennå. Kjør validatoren mot en sitemap og legg en{" "}
-          <code className="font-mono">report.json</code> i{" "}
-          <code className="font-mono">apps/web/fixtures/</code>.
+          Ingen nettsteder ennå. Trykk «Legg til nettsted» og oppgi en sitemap-URL for å komme i
+          gang.
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

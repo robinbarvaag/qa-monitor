@@ -11,19 +11,73 @@ import {
   getFindingsAnalysis,
   getGithubSource,
   getLatestFindings,
+  getProjectName,
   getRunAnalyses,
 } from "@qa/db";
 import { Badge } from "@qa/ui/badge";
-import { Activity } from "lucide-react";
+import { Activity, Radar } from "lucide-react";
 import { notFound } from "next/navigation";
 
 // Oppfølging leses fra DB per request → dynamisk render.
 export const dynamic = "force-dynamic";
 
+function ProjectHeader({
+  name,
+  slug,
+  subtitle,
+  children,
+}: {
+  name: string;
+  slug: string;
+  subtitle: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <header className="mb-8 overflow-hidden rounded-2xl bg-linear-to-br from-accent/60 to-card p-6 ring-1 ring-foreground/10">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2.5">
+            <div className="grid size-8 place-content-center rounded-lg bg-primary text-primary-foreground">
+              <Activity className="size-4.5" />
+            </div>
+            <h1 className="font-heading text-2xl font-bold">{name}</h1>
+            <Badge variant="outline" className="font-mono">
+              {slug}
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">{subtitle}</p>
+        </div>
+        {children}
+      </div>
+    </header>
+  );
+}
+
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const project = await loadProject(slug);
-  if (!project) notFound();
+
+  // Prosjekt finnes, men ingen fullført kjøring ennå → la brukeren kjøre den første.
+  if (!project) {
+    const name = await getProjectName(slug);
+    if (!name) notFound();
+    return (
+      <div className="mx-auto w-full max-w-6xl px-4 py-8">
+        <ProjectHeader name={name} slug={slug} subtitle="Nytt nettsted · ingen kjøring ennå">
+          <RunButton slug={slug} />
+        </ProjectHeader>
+        <div className="grid place-items-center gap-3 rounded-2xl border border-dashed border-border py-20 text-center">
+          <Radar className="size-8 text-muted-foreground" />
+          <p className="max-w-md text-sm text-muted-foreground">
+            Ingen kjøring ennå. Trykk{" "}
+            <span className="font-medium text-foreground">«Kjør validering»</span> for å hente
+            sidene fra sitemap (eller crawle nettstedet) og se tilgjengelighet, SEO, tastatur og
+            lenker.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const projectId = await ensureProject(slug, project.name);
   const annotations = await getAnnotations(projectId);

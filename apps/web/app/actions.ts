@@ -13,6 +13,7 @@ import {
   enqueueRun,
   ensureGithubSource,
   ensureProject,
+  ensureWebProject,
   getGithubSource,
   getLatestRunPages,
   getRunStatus,
@@ -43,6 +44,38 @@ export async function startRunAction(
   if (!runId) return { error: "Fant ingen valideringskilde for prosjektet." };
   spawnWorker(runId);
   return { runId };
+}
+
+function slugify(s: string): string {
+  return (
+    s
+      .toLowerCase()
+      .replace(/æ/g, "ae")
+      .replace(/ø/g, "o")
+      .replace(/å/g, "a")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60) || "nettsted"
+  );
+}
+
+/** Oppretter et nytt nettsteds-prosjekt (navn + sitemap-URL) og returnerer slug. */
+export async function addProjectAction(
+  name: string,
+  sitemapUrl: string,
+): Promise<{ slug: string } | { error: string }> {
+  const trimmedName = name.trim();
+  const url = sitemapUrl.trim();
+  if (!trimmedName) return { error: "Oppgi et navn." };
+  try {
+    new URL(url);
+  } catch {
+    return { error: "Oppgi en gyldig sitemap-URL (f.eks. https://nettsted.no/sitemap.xml)." };
+  }
+  const slug = slugify(trimmedName);
+  await ensureWebProject(slug, trimmedName, url);
+  revalidatePath("/");
+  return { slug };
 }
 
 /** Pre-flight: teller sitemap-størrelse (eller melder fra om crawl-fallback). */

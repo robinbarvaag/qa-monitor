@@ -1,4 +1,4 @@
-import { type RawPageRow, listProjectRefs, loadLatestRun } from "@qa/db";
+import { type RawPageRow, listProjectRefs, listWebProjects, loadLatestRun } from "@qa/db";
 import { type Report, normalize } from "./report";
 
 /**
@@ -11,6 +11,13 @@ export interface Project {
   slug: string;
   name: string;
   report: Report;
+}
+
+/** Oversikts-oppføring: report er null når prosjektet ikke er kjørt ennå. */
+export interface ProjectSummary {
+  slug: string;
+  name: string;
+  report: Report | null;
 }
 
 function toRawPage(r: RawPageRow): Record<string, unknown> {
@@ -49,8 +56,12 @@ export async function loadProject(slug: string): Promise<Project | null> {
   return { slug, name: latest.name, report };
 }
 
-export async function listProjects(): Promise<Project[]> {
-  const refs = await listProjectRefs();
-  const loaded = await Promise.all(refs.map((r) => loadProject(r.slug)));
-  return loaded.filter((p): p is Project => p !== null);
+export async function listProjects(): Promise<ProjectSummary[]> {
+  const refs = await listWebProjects();
+  return Promise.all(
+    refs.map(async (r) => {
+      const loaded = await loadProject(r.slug);
+      return { slug: r.slug, name: r.name, report: loaded?.report ?? null };
+    }),
+  );
 }

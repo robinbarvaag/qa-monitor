@@ -127,6 +127,46 @@ export interface RunOptions {
   mode?: RunMode;
 }
 
+/** Navnet til et prosjekt (uavhengig av kjøringer). */
+export async function getProjectName(slug: string): Promise<string | null> {
+  const rows = await db
+    .select({ name: project.name })
+    .from(project)
+    .where(eq(project.slug, slug))
+    .limit(1);
+  return rows[0]?.name ?? null;
+}
+
+/** Alle prosjekter som har en web_validation-kilde (uavhengig av kjøringer). */
+export async function listWebProjects(): Promise<ProjectRef[]> {
+  return db
+    .selectDistinct({ slug: project.slug, name: project.name })
+    .from(project)
+    .innerJoin(source, eq(source.projectId, project.id))
+    .where(eq(source.type, "web_validation"))
+    .orderBy(project.name);
+}
+
+/** Oppretter/oppdaterer et nettsteds-prosjekt med web_validation-kilde (sitemap). */
+export async function ensureWebProject(
+  slug: string,
+  name: string,
+  sitemapUrl: string,
+): Promise<void> {
+  const projectId = await ensureProject(slug, name);
+  const config = { mode: "sitemap", url: sitemapUrl, screenshots: true };
+  const existing = await db
+    .select({ id: source.id })
+    .from(source)
+    .where(and(eq(source.projectId, projectId), eq(source.type, "web_validation")))
+    .limit(1);
+  if (existing[0]) {
+    await db.update(source).set({ config, name: sitemapUrl }).where(eq(source.id, existing[0].id));
+  } else {
+    await db.insert(source).values({ projectId, type: "web_validation", name: sitemapUrl, config });
+  }
+}
+
 /** Henter web_validation-kildens config (bl.a. sitemap-url) for et prosjekt. */
 export async function getWebValidationConfig(
   slug: string,
