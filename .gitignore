@@ -12,3 +12,5 @@ venv
 # Python-validator: crawl-output (report.json kopieres til apps/web/fixtures/)
 validering*/
 axe.min.js
+# Genererte skjermbilder (regenereres per kjøring; blob-store kommer senere)
+apps/web/public/shots/
