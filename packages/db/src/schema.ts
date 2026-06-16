@@ -92,6 +92,7 @@ export const pageResult = pgTable(
     httpStatus: integer("http_status"),
     loadError: text("load_error"),
     // rike detaljer som jsonb
+    meta: jsonb("meta"),
     a11y: jsonb("a11y"),
     seo: jsonb("seo"),
     links: jsonb("links"),

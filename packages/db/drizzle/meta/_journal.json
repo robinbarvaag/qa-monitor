@@ -8,6 +8,13 @@
       "when": 1781634219376,
       "tag": "0000_public_sabretooth",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781635746889,
+      "tag": "0001_empty_fat_cobra",
+      "breakpoints": true
     }
   ]
 }
