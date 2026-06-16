@@ -191,12 +191,21 @@ export function RunButton({ slug }: { slug: string }) {
             </div>
           ) : (
             <div className="space-y-3 text-sm">
-              <p className="flex items-start gap-2 text-muted-foreground">
+              <div className="flex items-start gap-2 text-muted-foreground">
                 <Radar className="mt-0.5 size-4 shrink-0 text-amber-500" />
-                Fant ingen sitemap{info?.origin ? ` på ${info.origin}` : ""}. Vi kan i stedet{" "}
-                <span className="text-foreground">traversere nettstedet fra forsiden</span> og følge
-                interne lenker (crawl).
-              </p>
+                <p className="min-w-0 wrap-break-word">
+                  Fant ingen sitemap
+                  {info?.origin ? (
+                    <>
+                      {" på "}
+                      <span className="font-medium break-all text-foreground">{info.origin}</span>
+                    </>
+                  ) : null}
+                  . Vi kan i stedet{" "}
+                  <span className="text-foreground">traversere nettstedet fra forsiden</span> og
+                  følge interne lenker (crawl).
+                </p>
+              </div>
               <div className="flex items-center gap-2">
                 Maks
                 <Input
