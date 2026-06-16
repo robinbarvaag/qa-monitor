@@ -90,6 +90,10 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 
 - **Config-pakke:** `@qa/config` holder tsconfig-presets (`base`/`nextjs`/`react-library`).
   Biome + turbo blir på rot (Biome fungerer best som én rot-config).
+- **Merkevaretema:** bedriftens designtokens mappet inn i shadcn-tokenene i
+  `apps/web/app/globals.css` (lilla #98139C / mørk-lilla #4F0077 / magenta #CB0084,
+  feil #EC5014). Default er nå **lyst** (deres identitet); `.dark` er en avledet variant.
+  `bg-brand`/`text-brand`-utiliteter tilgjengelig.
 - **TypeScript 6.0.3** i hele monorepoet. `@qa/ui` bruker `baseUrl`+`paths` (kreves av
   shadcn-resolveren), stilnet med `ignoreDeprecations: "6.0"`. Ved TS 7 byttes til
   `imports`-feltet i package.json.

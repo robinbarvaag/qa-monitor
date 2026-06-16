@@ -23,7 +23,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8">
-      <header className="mb-8 overflow-hidden rounded-2xl bg-linear-to-br from-card to-muted/40 p-6 ring-1 ring-foreground/10">
+      <header className="mb-8 overflow-hidden rounded-2xl bg-linear-to-br from-accent/60 to-card p-6 ring-1 ring-foreground/10">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2.5">

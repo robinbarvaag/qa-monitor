@@ -26,10 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="no"
-      className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="no" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full">
         <SidebarProvider>
           <AppSidebar />
