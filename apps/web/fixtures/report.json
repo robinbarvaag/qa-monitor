@@ -1,0 +1,1387 @@
+{
+  "generated": "2026-06-16 18:23",
+  "source": "None",
+  "pages": [
+    {
+      "row": 1,
+      "column": "ny",
+      "url": "https://www.uutilsynet.no/",
+      "status": 200,
+      "ok": true,
+      "load_error": null,
+      "meta": {
+        "title": "Tilsynet for universell utforming av ikt",
+        "title_length": 40,
+        "meta_description": "Tilsynet for universell utforming av ikt jobbar for eit samfunn utan digitale barrierar og rettleier om universell utforming av ikt.",
+        "description_length": 132,
+        "lang": "nn",
+        "h1_count": 1,
+        "h1_texts": ["Framside"],
+        "canonical": "https://www.uutilsynet.no/",
+        "images_total": 16,
+        "images_missing_alt": 0,
+        "og": {
+          "title": "Framside",
+          "description": "Tilsynet for universell utforming av ikt jobbar for eit samfunn utan digitale barrierar og rettleier om universell utforming av ikt.",
+          "image": "https://www.uutilsynet.no/sites/tilsyn/files/styles/md/public/2020-12/Velkommen%20til%20nye%20UU-tilsynet.png?itok=uh8Plf7T",
+          "type": "website",
+          "url": "https://www.uutilsynet.no/node/1",
+          "site_name": "Tilsynet for universell utforming av ikt"
+        },
+        "twitter_card": "summary_large_image",
+        "robots_meta": null,
+        "viewport": "width=device-width, initial-scale=1.0",
+        "hreflang": [],
+        "jsonld": [],
+        "heading_count": 38,
+        "heading_skips": 0,
+        "rendered_text_len": 5784,
+        "word_count": 818
+      },
+      "a11y": {
+        "violation_count": 0,
+        "by_impact": {
+          "critical": 0,
+          "serious": 0,
+          "moderate": 0,
+          "minor": 0
+        },
+        "violations": [],
+        "incomplete_count": 2,
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "help": "Elements must meet minimum color contrast ratio thresholds",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=axeAPI",
+            "nodes": 10
+          },
+          {
+            "id": "frame-tested",
+            "help": "Frames should be tested with axe-core",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/frame-tested?application=axeAPI",
+            "nodes": 2
+          }
+        ]
+      },
+      "links": {
+        "total": 60,
+        "broken": [],
+        "uncertain": [],
+        "ignored": []
+      },
+      "seo": [
+        {
+          "level": "ok",
+          "key": "title-ok",
+          "msg": "Title OK (40 tegn)"
+        },
+        {
+          "level": "ok",
+          "key": "desc-ok",
+          "msg": "Meta description OK (132 tegn)"
+        }
+      ],
+      "geo": {
+        "signals": {
+          "jsonld": [],
+          "rendered_text_len": 5784,
+          "ssr_text_len": 7495,
+          "js_dependent": false,
+          "word_count": 818,
+          "markdown_available": false,
+          "ai_bots_blocked": []
+        },
+        "tips": [
+          "Legg til JSON-LD strukturert data (Organization, WebPage, FAQPage …). AI-motorer bruker dette aktivt for å forstå og sitere innhold.",
+          "Markdown-versjon ble ikke detektert (verken via Accept: text/markdown eller .md). Ren markdown er gull for LLM-er – verdt å verifisere at featuren svarer riktig."
+        ]
+      },
+      "markdown": {
+        "accept_header": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8"
+        },
+        "dot_md": {
+          "status": 200,
+          "content_type": "text/html",
+          "url": "https://www.uutilsynet.no.md"
+        },
+        "available": false
+      },
+      "ssr": {
+        "status": 200,
+        "text_len": 7495
+      },
+      "keyboard": {
+        "tab_stops": 15,
+        "trap": true,
+        "skip_link": {
+          "present": true,
+          "text": "Hopp til hovudinnhald"
+        },
+        "no_focus_count": 1,
+        "no_focus": [
+          {
+            "tag": "iframe",
+            "sel": "iframe",
+            "name": ""
+          }
+        ],
+        "positive_tabindex": [],
+        "offscreen_count": 0,
+        "offscreen": [],
+        "aria_hidden_count": 0,
+        "aria_hidden": [],
+        "unreachable_count": 0,
+        "unreachable": []
+      },
+      "shot": null,
+      "combined_shot": null,
+      "extra": {}
+    },
+    {
+      "row": 2,
+      "column": "ny",
+      "url": "https://www.uutilsynet.no/uubloggen/gjesteblogg-fra-ein-husvarm-brukar-bruke-nettsider-utan-hender/49",
+      "status": 200,
+      "ok": true,
+      "load_error": null,
+      "meta": {
+        "title": "Gjesteblogg frå ein husvarm brukar: Å bruke nettsider utan hender | Tilsynet for universell utforming av ikt",
+        "title_length": 108,
+        "meta_description": "Eg har jobba i Digitaliseringsdirektoratet på Servicesenteret. For fem år sidan vart eg lam i heile kroppen. I denne bloggen skriv eg om utfordringar eg møter når eg skal bruke nettløysingar utan hender.",
+        "description_length": 203,
+        "lang": "nn",
+        "h1_count": 1,
+        "h1_texts": ["Gjesteblogg frå ein husvarm brukar: Å bruke nettsider utan hender"],
+        "canonical": "https://www.uutilsynet.no/uubloggen/gjesteblogg-fra-ein-husvarm-brukar-bruke-nettsider-utan-hender/49",
+        "images_total": 3,
+        "images_missing_alt": 0,
+        "og": {
+          "title": "Gjesteblogg frå ein husvarm brukar: Å bruke nettsider utan hender",
+          "description": "Eg har jobba i Digitaliseringsdirektoratet på Servicesenteret. For fem år sidan vart eg lam i heile kroppen. I denne bloggen skriv eg om utfordringar eg møter når eg skal bruke nettløysingar utan hender.",
+          "image": "https://www.uutilsynet.no/sites/tilsyn/files/styles/md/public/2025-01/Inge%20Harald%20Fridtun%2C%20med%20pc%20med%20tastatur%20p%C3%A5%20skjermen_0.jpeg?itok=5sT4Fs3U",
+          "type": "website",
+          "url": "https://www.uutilsynet.no/uubloggen/gjesteblogg-fra-ein-husvarm-brukar-bruke-nettsider-utan-hender/49",
+          "site_name": "Tilsynet for universell utforming av ikt"
+        },
+        "twitter_card": "summary_large_image",
+        "robots_meta": null,
+        "viewport": "width=device-width, initial-scale=1.0",
+        "hreflang": [],
+        "jsonld": [],
+        "heading_count": 17,
+        "heading_skips": 0,
+        "rendered_text_len": 4425,
+        "word_count": 715
+      },
+      "a11y": {
+        "violation_count": 1,
+        "by_impact": {
+          "critical": 0,
+          "serious": 0,
+          "moderate": 1,
+          "minor": 0
+        },
+        "violations": [
+          {
+            "id": "landmark-unique",
+            "impact": "moderate",
+            "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-unique?application=axeAPI",
+            "nodes": 1,
+            "targets": [".submenu__body"]
+          }
+        ],
+        "incomplete_count": 1,
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "help": "Elements must meet minimum color contrast ratio thresholds",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=axeAPI",
+            "nodes": 7
+          }
+        ]
+      },
+      "links": {
+        "total": 49,
+        "broken": [],
+        "uncertain": [],
+        "ignored": []
+      },
+      "seo": [
+        {
+          "level": "warn",
+          "key": "title-long",
+          "msg": "Title er lang (108 tegn) – klippes ofte i søk (~60)"
+        },
+        {
+          "level": "warn",
+          "key": "desc-long",
+          "msg": "Meta description for lang (203 tegn) – klippes i søk (anbefalt ~50–160)"
+        }
+      ],
+      "geo": {
+        "signals": {
+          "jsonld": [],
+          "rendered_text_len": 4425,
+          "ssr_text_len": 6197,
+          "js_dependent": false,
+          "word_count": 715,
+          "markdown_available": false,
+          "ai_bots_blocked": []
+        },
+        "tips": [
+          "Legg til JSON-LD strukturert data (Organization, WebPage, FAQPage …). AI-motorer bruker dette aktivt for å forstå og sitere innhold.",
+          "Markdown-versjon ble ikke detektert (verken via Accept: text/markdown eller .md). Ren markdown er gull for LLM-er – verdt å verifisere at featuren svarer riktig."
+        ]
+      },
+      "markdown": {
+        "accept_header": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8"
+        },
+        "dot_md": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8",
+          "url": "https://www.uutilsynet.no/uubloggen/gjesteblogg-fra-ein-husvarm-brukar-bruke-nettsider-utan-hender/49.md"
+        },
+        "available": false
+      },
+      "ssr": {
+        "status": 200,
+        "text_len": 6197
+      },
+      "keyboard": {
+        "tab_stops": 34,
+        "trap": false,
+        "skip_link": {
+          "present": true,
+          "text": "Hopp til hovudinnhald"
+        },
+        "no_focus_count": 0,
+        "no_focus": [],
+        "positive_tabindex": [],
+        "offscreen_count": 0,
+        "offscreen": [],
+        "aria_hidden_count": 0,
+        "aria_hidden": [],
+        "unreachable_count": 0,
+        "unreachable": []
+      },
+      "shot": null,
+      "combined_shot": null,
+      "extra": {}
+    },
+    {
+      "row": 3,
+      "column": "ny",
+      "url": "https://www.uutilsynet.no/uubloggen/slik-nar-du-ut-med-informasjon-til-alle/51",
+      "status": 200,
+      "ok": true,
+      "load_error": null,
+      "meta": {
+        "title": "Slik når du ut med informasjon til alle | Tilsynet for universell utforming av ikt",
+        "title_length": 82,
+        "meta_description": "Skal nødvendig informasjon nå alle? Ja, det er vi sjølvsagt einige om. Men om du legg ut informasjon berre som lyd eller video på nett utan at du også legg ut det same innhaldet som tekst, så er det mange som ikkje kan få det med seg. Det er viktigare enn nokon gong at innbyggarane får lik tilgang til informasjon og til digitale tenester.",
+        "description_length": 340,
+        "lang": "nn",
+        "h1_count": 1,
+        "h1_texts": ["Slik når du ut med informasjon til alle"],
+        "canonical": "https://www.uutilsynet.no/uubloggen/slik-nar-du-ut-med-informasjon-til-alle/51",
+        "images_total": 3,
+        "images_missing_alt": 0,
+        "og": {
+          "title": "Slik når du ut med informasjon til alle",
+          "description": "Skal nødvendig informasjon nå alle? Ja, det er vi sjølvsagt einige om. Men om du legg ut informasjon berre som lyd eller video på nett utan at du også legg ut det same innhaldet som tekst, så er det mange som ikkje kan få det med seg. Det er viktigare enn nokon gong at innbyggarane får lik tilgang til informasjon og til digitale tenester.",
+          "image": "https://www.uutilsynet.no/sites/tilsyn/files/styles/md/public/2023-10/MRY%20fb%202%2C%20lav.jpg?itok=uQEK-pZR",
+          "type": "website",
+          "url": "https://www.uutilsynet.no/uubloggen/slik-nar-du-ut-med-informasjon-til-alle/51",
+          "site_name": "Tilsynet for universell utforming av ikt"
+        },
+        "twitter_card": "summary_large_image",
+        "robots_meta": null,
+        "viewport": "width=device-width, initial-scale=1.0",
+        "hreflang": [],
+        "jsonld": [],
+        "heading_count": 17,
+        "heading_skips": 0,
+        "rendered_text_len": 3647,
+        "word_count": 608
+      },
+      "a11y": {
+        "violation_count": 1,
+        "by_impact": {
+          "critical": 0,
+          "serious": 0,
+          "moderate": 1,
+          "minor": 0
+        },
+        "violations": [
+          {
+            "id": "landmark-unique",
+            "impact": "moderate",
+            "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-unique?application=axeAPI",
+            "nodes": 1,
+            "targets": [".submenu__body"]
+          }
+        ],
+        "incomplete_count": 1,
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "help": "Elements must meet minimum color contrast ratio thresholds",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=axeAPI",
+            "nodes": 7
+          }
+        ]
+      },
+      "links": {
+        "total": 50,
+        "broken": [],
+        "uncertain": [],
+        "ignored": []
+      },
+      "seo": [
+        {
+          "level": "warn",
+          "key": "title-long",
+          "msg": "Title er lang (82 tegn) – klippes ofte i søk (~60)"
+        },
+        {
+          "level": "fail",
+          "key": "desc-long",
+          "msg": "Meta description altfor lang (340 tegn) – trolig autogenerert fra brødtekst. Sett en egen på ~120–155 tegn."
+        }
+      ],
+      "geo": {
+        "signals": {
+          "jsonld": [],
+          "rendered_text_len": 3647,
+          "ssr_text_len": 5393,
+          "js_dependent": false,
+          "word_count": 608,
+          "markdown_available": false,
+          "ai_bots_blocked": []
+        },
+        "tips": [
+          "Legg til JSON-LD strukturert data (Organization, WebPage, FAQPage …). AI-motorer bruker dette aktivt for å forstå og sitere innhold.",
+          "Markdown-versjon ble ikke detektert (verken via Accept: text/markdown eller .md). Ren markdown er gull for LLM-er – verdt å verifisere at featuren svarer riktig."
+        ]
+      },
+      "markdown": {
+        "accept_header": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8"
+        },
+        "dot_md": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8",
+          "url": "https://www.uutilsynet.no/uubloggen/slik-nar-du-ut-med-informasjon-til-alle/51.md"
+        },
+        "available": false
+      },
+      "ssr": {
+        "status": 200,
+        "text_len": 5393
+      },
+      "keyboard": {
+        "tab_stops": 36,
+        "trap": false,
+        "skip_link": {
+          "present": true,
+          "text": "Hopp til hovudinnhald"
+        },
+        "no_focus_count": 0,
+        "no_focus": [],
+        "positive_tabindex": [],
+        "offscreen_count": 0,
+        "offscreen": [],
+        "aria_hidden_count": 0,
+        "aria_hidden": [],
+        "unreachable_count": 0,
+        "unreachable": []
+      },
+      "shot": null,
+      "combined_shot": null,
+      "extra": {}
+    },
+    {
+      "row": 4,
+      "column": "ny",
+      "url": "https://www.uutilsynet.no/uubloggen/vi-er-tilsynet-i-nytt-direktorat/52",
+      "status": 200,
+      "ok": true,
+      "load_error": null,
+      "meta": {
+        "title": "Vi er tilsynet i nytt direktorat | Tilsynet for universell utforming av ikt",
+        "title_length": 75,
+        "meta_description": "Frå nyttår er Difi historie, men vi går inn i ei ny og spennande tid og vi gler oss. Deler av Difi og deler av Brønnøysundregistera blir det nye Digitaliseringsdirektoratet, og tilsynet blir ein del av dette.",
+        "description_length": 208,
+        "lang": "nn",
+        "h1_count": 1,
+        "h1_texts": ["Vi er tilsynet i nytt direktorat"],
+        "canonical": "https://www.uutilsynet.no/uubloggen/vi-er-tilsynet-i-nytt-direktorat/52",
+        "images_total": 3,
+        "images_missing_alt": 0,
+        "og": {
+          "title": "Vi er tilsynet i nytt direktorat",
+          "description": "Frå nyttår er Difi historie, men vi går inn i ei ny og spennande tid og vi gler oss. Deler av Difi og deler av Brønnøysundregistera blir det nye Digitaliseringsdirektoratet, og tilsynet blir ein del av dette.",
+          "image": "https://www.uutilsynet.no/sites/tilsyn/files/styles/md/public/2023-10/MRY%20fb%202%2C%20lav.jpg?itok=uQEK-pZR",
+          "type": "website",
+          "url": "https://www.uutilsynet.no/uubloggen/vi-er-tilsynet-i-nytt-direktorat/52",
+          "site_name": "Tilsynet for universell utforming av ikt"
+        },
+        "twitter_card": "summary_large_image",
+        "robots_meta": null,
+        "viewport": "width=device-width, initial-scale=1.0",
+        "hreflang": [],
+        "jsonld": [],
+        "heading_count": 16,
+        "heading_skips": 0,
+        "rendered_text_len": 2882,
+        "word_count": 435
+      },
+      "a11y": {
+        "violation_count": 1,
+        "by_impact": {
+          "critical": 0,
+          "serious": 0,
+          "moderate": 1,
+          "minor": 0
+        },
+        "violations": [
+          {
+            "id": "landmark-unique",
+            "impact": "moderate",
+            "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-unique?application=axeAPI",
+            "nodes": 1,
+            "targets": [".submenu__body"]
+          }
+        ],
+        "incomplete_count": 1,
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "help": "Elements must meet minimum color contrast ratio thresholds",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=axeAPI",
+            "nodes": 7
+          }
+        ]
+      },
+      "links": {
+        "total": 48,
+        "broken": [],
+        "uncertain": [],
+        "ignored": []
+      },
+      "seo": [
+        {
+          "level": "warn",
+          "key": "title-long",
+          "msg": "Title er lang (75 tegn) – klippes ofte i søk (~60)"
+        },
+        {
+          "level": "warn",
+          "key": "desc-long",
+          "msg": "Meta description for lang (208 tegn) – klippes i søk (anbefalt ~50–160)"
+        }
+      ],
+      "geo": {
+        "signals": {
+          "jsonld": [],
+          "rendered_text_len": 2882,
+          "ssr_text_len": 4621,
+          "js_dependent": false,
+          "word_count": 435,
+          "markdown_available": false,
+          "ai_bots_blocked": []
+        },
+        "tips": [
+          "Legg til JSON-LD strukturert data (Organization, WebPage, FAQPage …). AI-motorer bruker dette aktivt for å forstå og sitere innhold.",
+          "Markdown-versjon ble ikke detektert (verken via Accept: text/markdown eller .md). Ren markdown er gull for LLM-er – verdt å verifisere at featuren svarer riktig."
+        ]
+      },
+      "markdown": {
+        "accept_header": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8"
+        },
+        "dot_md": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8",
+          "url": "https://www.uutilsynet.no/uubloggen/vi-er-tilsynet-i-nytt-direktorat/52.md"
+        },
+        "available": false
+      },
+      "ssr": {
+        "status": 200,
+        "text_len": 4621
+      },
+      "keyboard": {
+        "tab_stops": 34,
+        "trap": false,
+        "skip_link": {
+          "present": true,
+          "text": "Hopp til hovudinnhald"
+        },
+        "no_focus_count": 0,
+        "no_focus": [],
+        "positive_tabindex": [],
+        "offscreen_count": 0,
+        "offscreen": [],
+        "aria_hidden_count": 0,
+        "aria_hidden": [],
+        "unreachable_count": 0,
+        "unreachable": []
+      },
+      "shot": null,
+      "combined_shot": null,
+      "extra": {}
+    },
+    {
+      "row": 5,
+      "column": "ny",
+      "url": "https://www.uutilsynet.no/uubloggen/treng-vi-regulering-oppna-inkludering/53",
+      "status": 200,
+      "ok": true,
+      "load_error": null,
+      "meta": {
+        "title": "Treng vi regulering for å oppnå inkludering? | Tilsynet for universell utforming av ikt",
+        "title_length": 87,
+        "meta_description": "TechShare Pro i London er ein konferanse om tilgjengelegheit og inkluderande design som samlar leiarar frå heile verden, i regi av Google Uk og AbilityNet. Eg deltok i eit panel der vi drøfta om det er \"carrot or stick\" - gulrot eller pisk - som må til for å nå inkludering og universell utforming.",
+        "description_length": 298,
+        "lang": "nn",
+        "h1_count": 1,
+        "h1_texts": ["Treng vi regulering for å oppnå inkludering?"],
+        "canonical": "https://www.uutilsynet.no/uubloggen/treng-vi-regulering-oppna-inkludering/53",
+        "images_total": 3,
+        "images_missing_alt": 0,
+        "og": {
+          "title": "Treng vi regulering for å oppnå inkludering?",
+          "description": "TechShare Pro i London er ein konferanse om tilgjengelegheit og inkluderande design som samlar leiarar frå heile verden, i regi av Google Uk og AbilityNet. Eg deltok i eit panel der vi drøfta om det er \"carrot or stick\" - gulrot eller pisk - som må til for å nå inkludering og universell utforming.",
+          "image": "https://www.uutilsynet.no/sites/tilsyn/files/styles/md/public/malin_rygg_pa_techshare_pro_paneldebatt_nov_2019_0.jpg?itok=y-TjN5VO",
+          "type": "website",
+          "url": "https://www.uutilsynet.no/uubloggen/treng-vi-regulering-oppna-inkludering/53",
+          "site_name": "Tilsynet for universell utforming av ikt"
+        },
+        "twitter_card": "summary_large_image",
+        "robots_meta": null,
+        "viewport": "width=device-width, initial-scale=1.0",
+        "hreflang": [],
+        "jsonld": [],
+        "heading_count": 16,
+        "heading_skips": 0,
+        "rendered_text_len": 5209,
+        "word_count": 817
+      },
+      "a11y": {
+        "violation_count": 1,
+        "by_impact": {
+          "critical": 0,
+          "serious": 0,
+          "moderate": 1,
+          "minor": 0
+        },
+        "violations": [
+          {
+            "id": "landmark-unique",
+            "impact": "moderate",
+            "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-unique?application=axeAPI",
+            "nodes": 1,
+            "targets": [".submenu__body"]
+          }
+        ],
+        "incomplete_count": 1,
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "help": "Elements must meet minimum color contrast ratio thresholds",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=axeAPI",
+            "nodes": 7
+          }
+        ]
+      },
+      "links": {
+        "total": 49,
+        "broken": [],
+        "uncertain": [],
+        "ignored": []
+      },
+      "seo": [
+        {
+          "level": "warn",
+          "key": "title-long",
+          "msg": "Title er lang (87 tegn) – klippes ofte i søk (~60)"
+        },
+        {
+          "level": "warn",
+          "key": "desc-long",
+          "msg": "Meta description for lang (298 tegn) – klippes i søk (anbefalt ~50–160)"
+        }
+      ],
+      "geo": {
+        "signals": {
+          "jsonld": [],
+          "rendered_text_len": 5209,
+          "ssr_text_len": 6968,
+          "js_dependent": false,
+          "word_count": 817,
+          "markdown_available": false,
+          "ai_bots_blocked": []
+        },
+        "tips": [
+          "Legg til JSON-LD strukturert data (Organization, WebPage, FAQPage …). AI-motorer bruker dette aktivt for å forstå og sitere innhold.",
+          "Markdown-versjon ble ikke detektert (verken via Accept: text/markdown eller .md). Ren markdown er gull for LLM-er – verdt å verifisere at featuren svarer riktig."
+        ]
+      },
+      "markdown": {
+        "accept_header": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8"
+        },
+        "dot_md": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8",
+          "url": "https://www.uutilsynet.no/uubloggen/treng-vi-regulering-oppna-inkludering/53.md"
+        },
+        "available": false
+      },
+      "ssr": {
+        "status": 200,
+        "text_len": 6968
+      },
+      "keyboard": {
+        "tab_stops": 37,
+        "trap": false,
+        "skip_link": {
+          "present": true,
+          "text": "Hopp til hovudinnhald"
+        },
+        "no_focus_count": 0,
+        "no_focus": [],
+        "positive_tabindex": [],
+        "offscreen_count": 0,
+        "offscreen": [],
+        "aria_hidden_count": 0,
+        "aria_hidden": [],
+        "unreachable_count": 0,
+        "unreachable": []
+      },
+      "shot": null,
+      "combined_shot": null,
+      "extra": {}
+    },
+    {
+      "row": 6,
+      "column": "ny",
+      "url": "https://www.uutilsynet.no/uubloggen/nettbutikkane-under-lupa/55",
+      "status": 200,
+      "ok": true,
+      "load_error": null,
+      "meta": {
+        "title": "Nettbutikkane under lupa | Tilsynet for universell utforming av ikt",
+        "title_length": 67,
+        "meta_description": "Kvar dag handlar vi nordmenn for millionar av kroner på nett. Netthandel er for mange ein enkel inngangsport til eit enormt vareutval. Vi har eit regelverk som skal sikre at alle kan handle på nettet. Tilsynet gjennomfører derfor kontroll av 10 store nettbutikkar no.",
+        "description_length": 267,
+        "lang": "nn",
+        "h1_count": 1,
+        "h1_texts": ["Nettbutikkane under lupa"],
+        "canonical": "https://www.uutilsynet.no/uubloggen/nettbutikkane-under-lupa/55",
+        "images_total": 3,
+        "images_missing_alt": 0,
+        "og": {
+          "title": "Nettbutikkane under lupa",
+          "description": "Kvar dag handlar vi nordmenn for millionar av kroner på nett. Netthandel er for mange ein enkel inngangsport til eit enormt vareutval. Vi har eit regelverk som skal sikre at alle kan handle på nettet. Tilsynet gjennomfører derfor kontroll av 10 store nettbutikkar no.",
+          "image": "https://www.uutilsynet.no/sites/tilsyn/files/styles/md/public/2023-10/MRY%20fb%202%2C%20lav.jpg?itok=uQEK-pZR",
+          "type": "website",
+          "url": "https://www.uutilsynet.no/uubloggen/nettbutikkane-under-lupa/55",
+          "site_name": "Tilsynet for universell utforming av ikt"
+        },
+        "twitter_card": "summary_large_image",
+        "robots_meta": null,
+        "viewport": "width=device-width, initial-scale=1.0",
+        "hreflang": [],
+        "jsonld": [],
+        "heading_count": 19,
+        "heading_skips": 0,
+        "rendered_text_len": 4831,
+        "word_count": 717
+      },
+      "a11y": {
+        "violation_count": 1,
+        "by_impact": {
+          "critical": 0,
+          "serious": 0,
+          "moderate": 1,
+          "minor": 0
+        },
+        "violations": [
+          {
+            "id": "landmark-unique",
+            "impact": "moderate",
+            "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-unique?application=axeAPI",
+            "nodes": 1,
+            "targets": [".submenu__body"]
+          }
+        ],
+        "incomplete_count": 1,
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "help": "Elements must meet minimum color contrast ratio thresholds",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=axeAPI",
+            "nodes": 7
+          }
+        ]
+      },
+      "links": {
+        "total": 49,
+        "broken": [],
+        "uncertain": [],
+        "ignored": []
+      },
+      "seo": [
+        {
+          "level": "warn",
+          "key": "title-long",
+          "msg": "Title er lang (67 tegn) – klippes ofte i søk (~60)"
+        },
+        {
+          "level": "warn",
+          "key": "desc-long",
+          "msg": "Meta description for lang (267 tegn) – klippes i søk (anbefalt ~50–160)"
+        }
+      ],
+      "geo": {
+        "signals": {
+          "jsonld": [],
+          "rendered_text_len": 4831,
+          "ssr_text_len": 6561,
+          "js_dependent": false,
+          "word_count": 717,
+          "markdown_available": false,
+          "ai_bots_blocked": []
+        },
+        "tips": [
+          "Legg til JSON-LD strukturert data (Organization, WebPage, FAQPage …). AI-motorer bruker dette aktivt for å forstå og sitere innhold.",
+          "Markdown-versjon ble ikke detektert (verken via Accept: text/markdown eller .md). Ren markdown er gull for LLM-er – verdt å verifisere at featuren svarer riktig."
+        ]
+      },
+      "markdown": {
+        "accept_header": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8"
+        },
+        "dot_md": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8",
+          "url": "https://www.uutilsynet.no/uubloggen/nettbutikkane-under-lupa/55.md"
+        },
+        "available": false
+      },
+      "ssr": {
+        "status": 200,
+        "text_len": 6561
+      },
+      "keyboard": {
+        "tab_stops": 38,
+        "trap": false,
+        "skip_link": {
+          "present": true,
+          "text": "Hopp til hovudinnhald"
+        },
+        "no_focus_count": 0,
+        "no_focus": [],
+        "positive_tabindex": [],
+        "offscreen_count": 0,
+        "offscreen": [],
+        "aria_hidden_count": 0,
+        "aria_hidden": [],
+        "unreachable_count": 0,
+        "unreachable": []
+      },
+      "shot": null,
+      "combined_shot": null,
+      "extra": {}
+    },
+    {
+      "row": 7,
+      "column": "ny",
+      "url": "https://www.uutilsynet.no/uubloggen/gjesteblogg-be-sin-friske-mor/56",
+      "status": 200,
+      "ok": true,
+      "load_error": null,
+      "meta": {
+        "title": "Gjesteblogg: Be for sin friske mor | Tilsynet for universell utforming av ikt",
+        "title_length": 77,
+        "meta_description": "Burde vi kreve at en 29 år gammel utvikler har kontakt med eldre onkler, tanter, venner eller besteforeldre for innspill? Jo Herstad skriver dagens blogg på vegne av sin mor. Les om hvordan en som har passert 90 år opplever å bruke digitale tjenester og hennes råd.",
+        "description_length": 265,
+        "lang": "nb",
+        "h1_count": 1,
+        "h1_texts": ["Gjesteblogg: Be for sin friske mor"],
+        "canonical": "https://www.uutilsynet.no/uubloggen/gjesteblogg-be-sin-friske-mor/56",
+        "images_total": 3,
+        "images_missing_alt": 0,
+        "og": {
+          "title": "Gjesteblogg: Be for sin friske mor",
+          "description": "Burde vi kreve at en 29 år gammel utvikler har kontakt med eldre onkler, tanter, venner eller besteforeldre for innspill? Jo Herstad skriver dagens blogg på vegne av sin mor. Les om hvordan en som har passert 90 år opplever å bruke digitale tjenester og hennes råd.",
+          "image": "https://www.uutilsynet.no/sites/tilsyn/files/styles/md/public/2021-08/Gjesteblogger%20Jo%20Herstad%20fb.png?itok=2bG2u0RG",
+          "type": "website",
+          "url": "https://www.uutilsynet.no/uubloggen/gjesteblogg-be-sin-friske-mor/56",
+          "site_name": "Tilsynet for universell utforming av ikt"
+        },
+        "twitter_card": "summary_large_image",
+        "robots_meta": null,
+        "viewport": "width=device-width, initial-scale=1.0",
+        "hreflang": [],
+        "jsonld": [],
+        "heading_count": 18,
+        "heading_skips": 0,
+        "rendered_text_len": 8237,
+        "word_count": 1392
+      },
+      "a11y": {
+        "violation_count": 1,
+        "by_impact": {
+          "critical": 0,
+          "serious": 0,
+          "moderate": 1,
+          "minor": 0
+        },
+        "violations": [
+          {
+            "id": "landmark-unique",
+            "impact": "moderate",
+            "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-unique?application=axeAPI",
+            "nodes": 1,
+            "targets": [".submenu__body"]
+          }
+        ],
+        "incomplete_count": 1,
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "help": "Elements must meet minimum color contrast ratio thresholds",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=axeAPI",
+            "nodes": 7
+          }
+        ]
+      },
+      "links": {
+        "total": 51,
+        "broken": [],
+        "uncertain": [],
+        "ignored": []
+      },
+      "seo": [
+        {
+          "level": "warn",
+          "key": "title-long",
+          "msg": "Title er lang (77 tegn) – klippes ofte i søk (~60)"
+        },
+        {
+          "level": "warn",
+          "key": "desc-long",
+          "msg": "Meta description for lang (265 tegn) – klippes i søk (anbefalt ~50–160)"
+        }
+      ],
+      "geo": {
+        "signals": {
+          "jsonld": [],
+          "rendered_text_len": 8237,
+          "ssr_text_len": 9978,
+          "js_dependent": false,
+          "word_count": 1392,
+          "markdown_available": false,
+          "ai_bots_blocked": []
+        },
+        "tips": [
+          "Legg til JSON-LD strukturert data (Organization, WebPage, FAQPage …). AI-motorer bruker dette aktivt for å forstå og sitere innhold.",
+          "Markdown-versjon ble ikke detektert (verken via Accept: text/markdown eller .md). Ren markdown er gull for LLM-er – verdt å verifisere at featuren svarer riktig."
+        ]
+      },
+      "markdown": {
+        "accept_header": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8"
+        },
+        "dot_md": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8",
+          "url": "https://www.uutilsynet.no/uubloggen/gjesteblogg-be-sin-friske-mor/56.md"
+        },
+        "available": false
+      },
+      "ssr": {
+        "status": 200,
+        "text_len": 9978
+      },
+      "keyboard": {
+        "tab_stops": 37,
+        "trap": false,
+        "skip_link": {
+          "present": true,
+          "text": "Hopp til hovedinnhold"
+        },
+        "no_focus_count": 0,
+        "no_focus": [],
+        "positive_tabindex": [],
+        "offscreen_count": 0,
+        "offscreen": [],
+        "aria_hidden_count": 0,
+        "aria_hidden": [],
+        "unreachable_count": 0,
+        "unreachable": []
+      },
+      "shot": null,
+      "combined_shot": null,
+      "extra": {}
+    },
+    {
+      "row": 8,
+      "column": "ny",
+      "url": "https://www.uutilsynet.no/uubloggen/gjesteblogg-det-vakre-i-na-frem-til-alle-med-ditt-budskap/57",
+      "status": 200,
+      "ok": true,
+      "load_error": null,
+      "meta": {
+        "title": "Gjesteblogg: Det vakre i å nå frem til alle med ditt budskap | Tilsynet for universell utforming av ikt",
+        "title_length": 103,
+        "meta_description": "Lær å se det vakre i å nå alle med ditt budskap. Ikke bare lag et design som er vakkert å se på, sier Helga som er svaksynt. Les om hvordan hun opplever digitale tjenester i hverdagen og hennes råd til utviklere og designere.",
+        "description_length": 225,
+        "lang": "nb",
+        "h1_count": 1,
+        "h1_texts": ["Gjesteblogg: Det vakre i å nå frem til alle med ditt budskap"],
+        "canonical": "https://www.uutilsynet.no/uubloggen/gjesteblogg-det-vakre-i-na-frem-til-alle-med-ditt-budskap/57",
+        "images_total": 4,
+        "images_missing_alt": 0,
+        "og": {
+          "title": "Gjesteblogg: Det vakre i å nå frem til alle med ditt budskap",
+          "description": "Lær å se det vakre i å nå alle med ditt budskap. Ikke bare lag et design som er vakkert å se på, sier Helga som er svaksynt. Les om hvordan hun opplever digitale tjenester i hverdagen og hennes råd til utviklere og designere.",
+          "image": "https://www.uutilsynet.no/sites/tilsyn/files/styles/md/public/portrett_helga_norland_0.jpg?itok=LGa6YlSN",
+          "type": "website",
+          "url": "https://www.uutilsynet.no/uubloggen/gjesteblogg-det-vakre-i-na-frem-til-alle-med-ditt-budskap/57",
+          "site_name": "Tilsynet for universell utforming av ikt"
+        },
+        "twitter_card": "summary_large_image",
+        "robots_meta": null,
+        "viewport": "width=device-width, initial-scale=1.0",
+        "hreflang": [],
+        "jsonld": [],
+        "heading_count": 20,
+        "heading_skips": 0,
+        "rendered_text_len": 5276,
+        "word_count": 830
+      },
+      "a11y": {
+        "violation_count": 1,
+        "by_impact": {
+          "critical": 0,
+          "serious": 0,
+          "moderate": 1,
+          "minor": 0
+        },
+        "violations": [
+          {
+            "id": "landmark-unique",
+            "impact": "moderate",
+            "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-unique?application=axeAPI",
+            "nodes": 1,
+            "targets": [".submenu__body"]
+          }
+        ],
+        "incomplete_count": 1,
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "help": "Elements must meet minimum color contrast ratio thresholds",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=axeAPI",
+            "nodes": 7
+          }
+        ]
+      },
+      "links": {
+        "total": 51,
+        "broken": [],
+        "uncertain": [],
+        "ignored": []
+      },
+      "seo": [
+        {
+          "level": "warn",
+          "key": "title-long",
+          "msg": "Title er lang (103 tegn) – klippes ofte i søk (~60)"
+        },
+        {
+          "level": "warn",
+          "key": "desc-long",
+          "msg": "Meta description for lang (225 tegn) – klippes i søk (anbefalt ~50–160)"
+        }
+      ],
+      "geo": {
+        "signals": {
+          "jsonld": [],
+          "rendered_text_len": 5276,
+          "ssr_text_len": 7043,
+          "js_dependent": false,
+          "word_count": 830,
+          "markdown_available": false,
+          "ai_bots_blocked": []
+        },
+        "tips": [
+          "Legg til JSON-LD strukturert data (Organization, WebPage, FAQPage …). AI-motorer bruker dette aktivt for å forstå og sitere innhold.",
+          "Markdown-versjon ble ikke detektert (verken via Accept: text/markdown eller .md). Ren markdown er gull for LLM-er – verdt å verifisere at featuren svarer riktig."
+        ]
+      },
+      "markdown": {
+        "accept_header": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8"
+        },
+        "dot_md": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8",
+          "url": "https://www.uutilsynet.no/uubloggen/gjesteblogg-det-vakre-i-na-frem-til-alle-med-ditt-budskap/57.md"
+        },
+        "available": false
+      },
+      "ssr": {
+        "status": 200,
+        "text_len": 7043
+      },
+      "keyboard": {
+        "tab_stops": 37,
+        "trap": false,
+        "skip_link": {
+          "present": true,
+          "text": "Hopp til hovedinnhold"
+        },
+        "no_focus_count": 0,
+        "no_focus": [],
+        "positive_tabindex": [],
+        "offscreen_count": 0,
+        "offscreen": [],
+        "aria_hidden_count": 0,
+        "aria_hidden": [],
+        "unreachable_count": 0,
+        "unreachable": []
+      },
+      "shot": null,
+      "combined_shot": null,
+      "extra": {}
+    },
+    {
+      "row": 9,
+      "column": "ny",
+      "url": "https://www.uutilsynet.no/uubloggen/gjesteblogg-veien-mot-et-inkluderende-digitalt-laeringsmiljo/58",
+      "status": 200,
+      "ok": true,
+      "load_error": null,
+      "meta": {
+        "title": "Gjesteblogg: Veien mot et inkluderende digitalt læringsmiljø | Tilsynet for universell utforming av ikt",
+        "title_length": 103,
+        "meta_description": "Universiteter og høyskoler skal endelig levere på lovens krav om universell utforming av det digitale læringsmiljø. Men uroen brer seg i sektoren. Klarer vi å løse dette eller vil Difi gi oss smekk på lanken?",
+        "description_length": 208,
+        "lang": "nb",
+        "h1_count": 1,
+        "h1_texts": ["Gjesteblogg: Veien mot et inkluderende digitalt læringsmiljø"],
+        "canonical": "https://www.uutilsynet.no/uubloggen/gjesteblogg-veien-mot-et-inkluderende-digitalt-laeringsmiljo/58",
+        "images_total": 3,
+        "images_missing_alt": 0,
+        "og": {
+          "title": "Gjesteblogg: Veien mot et inkluderende digitalt læringsmiljø",
+          "description": "Universiteter og høyskoler skal endelig levere på lovens krav om universell utforming av det digitale læringsmiljø. Men uroen brer seg i sektoren. Klarer vi å løse dette eller vil Difi gi oss smekk på lanken?",
+          "image": "https://www.uutilsynet.no/sites/tilsyn/files/styles/md/public/klassesituasjon_laerer_pc.jpg?itok=5e-apWXd",
+          "type": "website",
+          "url": "https://www.uutilsynet.no/uubloggen/gjesteblogg-veien-mot-et-inkluderende-digitalt-laeringsmiljo/58",
+          "site_name": "Tilsynet for universell utforming av ikt"
+        },
+        "twitter_card": "summary_large_image",
+        "robots_meta": null,
+        "viewport": "width=device-width, initial-scale=1.0",
+        "hreflang": [],
+        "jsonld": [],
+        "heading_count": 20,
+        "heading_skips": 0,
+        "rendered_text_len": 6442,
+        "word_count": 1015
+      },
+      "a11y": {
+        "violation_count": 1,
+        "by_impact": {
+          "critical": 0,
+          "serious": 0,
+          "moderate": 1,
+          "minor": 0
+        },
+        "violations": [
+          {
+            "id": "landmark-unique",
+            "impact": "moderate",
+            "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-unique?application=axeAPI",
+            "nodes": 1,
+            "targets": [".submenu__body"]
+          }
+        ],
+        "incomplete_count": 1,
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "help": "Elements must meet minimum color contrast ratio thresholds",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=axeAPI",
+            "nodes": 7
+          }
+        ]
+      },
+      "links": {
+        "total": 50,
+        "broken": [],
+        "uncertain": [],
+        "ignored": []
+      },
+      "seo": [
+        {
+          "level": "warn",
+          "key": "title-long",
+          "msg": "Title er lang (103 tegn) – klippes ofte i søk (~60)"
+        },
+        {
+          "level": "warn",
+          "key": "desc-long",
+          "msg": "Meta description for lang (208 tegn) – klippes i søk (anbefalt ~50–160)"
+        }
+      ],
+      "geo": {
+        "signals": {
+          "jsonld": [],
+          "rendered_text_len": 6442,
+          "ssr_text_len": 8208,
+          "js_dependent": false,
+          "word_count": 1015,
+          "markdown_available": false,
+          "ai_bots_blocked": []
+        },
+        "tips": [
+          "Legg til JSON-LD strukturert data (Organization, WebPage, FAQPage …). AI-motorer bruker dette aktivt for å forstå og sitere innhold.",
+          "Markdown-versjon ble ikke detektert (verken via Accept: text/markdown eller .md). Ren markdown er gull for LLM-er – verdt å verifisere at featuren svarer riktig."
+        ]
+      },
+      "markdown": {
+        "accept_header": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8"
+        },
+        "dot_md": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8",
+          "url": "https://www.uutilsynet.no/uubloggen/gjesteblogg-veien-mot-et-inkluderende-digitalt-laeringsmiljo/58.md"
+        },
+        "available": false
+      },
+      "ssr": {
+        "status": 200,
+        "text_len": 8208
+      },
+      "keyboard": {
+        "tab_stops": 37,
+        "trap": false,
+        "skip_link": {
+          "present": true,
+          "text": "Hopp til hovedinnhold"
+        },
+        "no_focus_count": 0,
+        "no_focus": [],
+        "positive_tabindex": [],
+        "offscreen_count": 0,
+        "offscreen": [],
+        "aria_hidden_count": 0,
+        "aria_hidden": [],
+        "unreachable_count": 0,
+        "unreachable": []
+      },
+      "shot": null,
+      "combined_shot": null,
+      "extra": {}
+    },
+    {
+      "row": 10,
+      "column": "ny",
+      "url": "https://www.uutilsynet.no/uubloggen/gjesteblogg-synshemmet-pa-nett/59",
+      "status": 200,
+      "ok": true,
+      "load_error": null,
+      "meta": {
+        "title": "Gjesteblogg: Synshemmet på nett | Tilsynet for universell utforming av ikt",
+        "title_length": 74,
+        "meta_description": "Det viktigste for at en nettside skal være mest mulig brukervennlig for en synshemmet person, er etter min mening at innholdet skal være presentert på en måte som gjør det enkelt å få omdannet til lyd ved hjelp av syntetisk taleprogramvare. Universell utforming er nødvendig.",
+        "description_length": 275,
+        "lang": "nb",
+        "h1_count": 1,
+        "h1_texts": ["Gjesteblogg: Synshemmet på nett"],
+        "canonical": "https://www.uutilsynet.no/uubloggen/gjesteblogg-synshemmet-pa-nett/59",
+        "images_total": 3,
+        "images_missing_alt": 0,
+        "og": {
+          "title": "Gjesteblogg: Synshemmet på nett",
+          "description": "Det viktigste for at en nettside skal være mest mulig brukervennlig for en synshemmet person, er etter min mening at innholdet skal være presentert på en måte som gjør det enkelt å få omdannet til lyd ved hjelp av syntetisk taleprogramvare. Universell utforming er nødvendig.",
+          "image": "https://www.uutilsynet.no/sites/tilsyn/files/styles/md/public/2025-01/Einar%20Fauske%20.jpeg?itok=M-YTquz5",
+          "type": "website",
+          "url": "https://www.uutilsynet.no/uubloggen/gjesteblogg-synshemmet-pa-nett/59",
+          "site_name": "Tilsynet for universell utforming av ikt"
+        },
+        "twitter_card": "summary_large_image",
+        "robots_meta": null,
+        "viewport": "width=device-width, initial-scale=1.0",
+        "hreflang": [],
+        "jsonld": [],
+        "heading_count": 19,
+        "heading_skips": 0,
+        "rendered_text_len": 5904,
+        "word_count": 1018
+      },
+      "a11y": {
+        "violation_count": 1,
+        "by_impact": {
+          "critical": 0,
+          "serious": 0,
+          "moderate": 1,
+          "minor": 0
+        },
+        "violations": [
+          {
+            "id": "landmark-unique",
+            "impact": "moderate",
+            "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/landmark-unique?application=axeAPI",
+            "nodes": 1,
+            "targets": [".submenu__body"]
+          }
+        ],
+        "incomplete_count": 1,
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "help": "Elements must meet minimum color contrast ratio thresholds",
+            "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=axeAPI",
+            "nodes": 7
+          }
+        ]
+      },
+      "links": {
+        "total": 50,
+        "broken": [],
+        "uncertain": [],
+        "ignored": []
+      },
+      "seo": [
+        {
+          "level": "warn",
+          "key": "title-long",
+          "msg": "Title er lang (74 tegn) – klippes ofte i søk (~60)"
+        },
+        {
+          "level": "warn",
+          "key": "desc-long",
+          "msg": "Meta description for lang (275 tegn) – klippes i søk (anbefalt ~50–160)"
+        }
+      ],
+      "geo": {
+        "signals": {
+          "jsonld": [],
+          "rendered_text_len": 5904,
+          "ssr_text_len": 7650,
+          "js_dependent": false,
+          "word_count": 1018,
+          "markdown_available": false,
+          "ai_bots_blocked": []
+        },
+        "tips": [
+          "Legg til JSON-LD strukturert data (Organization, WebPage, FAQPage …). AI-motorer bruker dette aktivt for å forstå og sitere innhold.",
+          "Markdown-versjon ble ikke detektert (verken via Accept: text/markdown eller .md). Ren markdown er gull for LLM-er – verdt å verifisere at featuren svarer riktig."
+        ]
+      },
+      "markdown": {
+        "accept_header": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8"
+        },
+        "dot_md": {
+          "status": 200,
+          "content_type": "text/html; charset=utf-8",
+          "url": "https://www.uutilsynet.no/uubloggen/gjesteblogg-synshemmet-pa-nett/59.md"
+        },
+        "available": false
+      },
+      "ssr": {
+        "status": 200,
+        "text_len": 7650
+      },
+      "keyboard": {
+        "tab_stops": 35,
+        "trap": false,
+        "skip_link": {
+          "present": true,
+          "text": "Hopp til hovedinnhold"
+        },
+        "no_focus_count": 0,
+        "no_focus": [],
+        "positive_tabindex": [],
+        "offscreen_count": 0,
+        "offscreen": [],
+        "aria_hidden_count": 0,
+        "aria_hidden": [],
+        "unreachable_count": 0,
+        "unreachable": []
+      },
+      "shot": null,
+      "combined_shot": null,
+      "extra": {}
+    }
+  ],
+  "sites": {
+    "www.uutilsynet.no": {
+      "origin": "www.uutilsynet.no",
+      "base": "https://www.uutilsynet.no",
+      "robots": {
+        "exists": true,
+        "ai_bots": {
+          "GPTBot": true,
+          "OAI-SearchBot": true,
+          "ChatGPT-User": true,
+          "ClaudeBot": true,
+          "anthropic-ai": true,
+          "Claude-Web": true,
+          "PerplexityBot": true,
+          "Google-Extended": true,
+          "CCBot": true,
+          "Bytespider": true,
+          "Applebot-Extended": true,
+          "Amazonbot": true,
+          "Meta-ExternalAgent": true
+        },
+        "wildcard_allowed": true,
+        "sitemaps": []
+      },
+      "llms_txt": {
+        "exists": false,
+        "status": 403,
+        "content_type": "text/html",
+        "url": "https://www.uutilsynet.no/llms.txt"
+      },
+      "llms_full_txt": {
+        "exists": false,
+        "status": 403,
+        "content_type": "text/html",
+        "url": "https://www.uutilsynet.no/llms-full.txt"
+      }
+    }
+  }
+}

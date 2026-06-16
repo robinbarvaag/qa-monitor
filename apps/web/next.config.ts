@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Workspace-pakker som leveres som TS-kilde (transpileres av Next).
+  transpilePackages: ["@qa/ui", "@qa/core"],
 };
 
 export default nextConfig;
