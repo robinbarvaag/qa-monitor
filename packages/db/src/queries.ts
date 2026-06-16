@@ -117,6 +117,45 @@ export async function loadLatestRun(slug: string): Promise<LatestRun | null> {
   };
 }
 
+/* ---------- trigge kjøringer (Fase 3) ---------- */
+
+export type RunStatusValue = "queued" | "running" | "done" | "error";
+
+/** Oppretter en køet `run` for prosjektets web_validation-kilde. */
+export async function enqueueRun(slug: string): Promise<string | null> {
+  const rows = await db
+    .select({ sourceId: source.id })
+    .from(source)
+    .innerJoin(project, eq(project.id, source.projectId))
+    .where(and(eq(project.slug, slug), eq(source.type, "web_validation")))
+    .limit(1);
+  const src = rows[0];
+  if (!src) return null;
+  const inserted = await db
+    .insert(run)
+    .values({ sourceId: src.sourceId, status: "queued" })
+    .returning({ id: run.id });
+  return inserted[0]?.id ?? null;
+}
+
+export interface RunStatus {
+  status: RunStatusValue;
+  progress: { done: number; total: number } | null;
+  error: string | null;
+}
+
+export async function getRunStatus(runId: string): Promise<RunStatus | null> {
+  const rows = await db
+    .select({ status: run.status, data: run.data, error: run.error })
+    .from(run)
+    .where(eq(run.id, runId))
+    .limit(1);
+  const r = rows[0];
+  if (!r) return null;
+  const data = (r.data ?? {}) as { progress?: { done: number; total: number } };
+  return { status: r.status, progress: data.progress ?? null, error: r.error };
+}
+
 export async function saveAnnotation(
   projectId: string,
   targetKey: string,

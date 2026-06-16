@@ -1,4 +1,5 @@
 import { PageExplorer } from "@/components/page-explorer";
+import { RunButton } from "@/components/run-button";
 import { SiteSection } from "@/components/site-section";
 import { SummaryCards } from "@/components/summary-cards";
 import { loadProject } from "@/lib/projects";
@@ -43,12 +44,15 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
               {report.generated && ` · kjørt ${new Date(report.generated).toLocaleString("nb-NO")}`}
             </p>
           </div>
-          <div className="text-right">
-            <div className={`font-heading text-4xl font-bold tabular-nums ${healthTone}`}>
-              {healthPct}%
-            </div>
-            <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              uten a11y-brudd
+          <div className="flex items-center gap-6">
+            <RunButton slug={slug} />
+            <div className="text-right">
+              <div className={`font-heading text-4xl font-bold tabular-nums ${healthTone}`}>
+                {healthPct}%
+              </div>
+              <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                uten a11y-brudd
+              </div>
             </div>
           </div>
         </div>

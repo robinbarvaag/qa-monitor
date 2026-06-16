@@ -5,7 +5,7 @@ denne fila er *hvor vi er* og *hva som er neste*.
 
 Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck passerer og kjører).
 
-**Status nå:** Fase 0 ✅ · Fase 1 ✅ (Sammenlign parkert) · Fase 2 ✅ (app leser fra Neon) · Fase 3 neste
+**Status nå:** Fase 0–3 ✅ (Sammenlign parkert) · trigge kjøringer fra UI fungerer · Fase 4/5 neste
 
 > **Designendring (2026-06-16):** Primær bruk er **overvåking av mange levende
 > nettsteder**, med URL-er hentet fra `sitemap.xml`. Per-side-QA (a11y, skjermbilde,
@@ -66,10 +66,12 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 
 ---
 
-## Fase 3 — Trigge kjøringer + live progresjon
+## Fase 3 — Trigge kjøringer + live progresjon ✅
 
-- [ ] «Kjør validering»-knapp: skriv `run` (queued) + `RunQueue.enqueue`; lokalt `InlineRunQueue`
-- [ ] Live progresjon via polling (senere SSE)
+- [x] `--run-id`-modus i workeren: leser køet `run` + `source.config`, setter status (queued→running→done/error), rapporterer progresjon
+- [x] «Kjør validering»-knapp → server action skriver `run` (queued) + spawner workeren (`uv run … --run-id`) detached fra Node (InlineRunQueue lokalt)
+- [x] Live progresjon via polling (`getRunStatusAction`, «Kjører d/N») + `router.refresh()` ved ferdig
+- [ ] Senere: SSE i stedet for polling; `RunQueue`-abstraksjon i `@qa/core`; kø for flere samtidige kjøringer
 
 ---
 
