@@ -23,6 +23,7 @@ export const findingKind = pgEnum("finding_kind", [
 ]);
 export const severity = pgEnum("severity", ["critical", "serious", "moderate", "minor", "info"]);
 export const annotationStatus = pgEnum("annotation_status", ["followup", "done"]);
+export const analysisKind = pgEnum("analysis_kind", ["run_summary", "page"]);
 
 /* ---------- kjerne ---------- */
 export const project = pgTable("project", {
@@ -135,6 +136,27 @@ export const finding = pgTable(
   },
   (t) => ({
     fpIdx: index("finding_fingerprint_idx").on(t.projectId, t.fingerprint),
+  }),
+);
+
+/* ---------- AI-analyse (Fase 4) — adskilt fra deterministisk validering ----------
+ * Tolkende lag oppå ferdige resultater. `kind=run_summary` har pageId=null (helhet
+ * for kjøringen); `kind=page` har én rad per side. Regenereres per kjøring. */
+export const analysis = pgTable(
+  "analysis",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    runId: uuid("run_id")
+      .notNull()
+      .references(() => run.id, { onDelete: "cascade" }),
+    pageId: uuid("page_id").references(() => page.id, { onDelete: "cascade" }), // null = kjøring-nivå
+    kind: analysisKind("kind").notNull(),
+    model: text("model").notNull(),
+    content: jsonb("content").$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    runIdx: index("analysis_run_idx").on(t.runId),
   }),
 );
 

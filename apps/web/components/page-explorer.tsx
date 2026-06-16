@@ -3,8 +3,15 @@
 import { saveAnnotationAction } from "@/app/actions";
 import { ScreenshotViewer } from "@/components/screenshot-viewer";
 import type { ReportPage } from "@/lib/report";
-import { impactBadge, impactDotClass, seoBadge, worstImpact } from "@/lib/ui-helpers";
-import type { AnnotationEntry, AnnotationMap, AnnotationStatus } from "@qa/db";
+import {
+  SEVERITY_LABEL,
+  impactBadge,
+  impactDotClass,
+  seoBadge,
+  severityBadge,
+  worstImpact,
+} from "@/lib/ui-helpers";
+import type { AnnotationEntry, AnnotationMap, AnnotationStatus, PageAnalysisContent } from "@qa/db";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@qa/ui/accordion";
 import { Badge } from "@qa/ui/badge";
 import { Button } from "@qa/ui/button";
@@ -22,6 +29,7 @@ import {
   Link2,
   Search,
   SlidersHorizontal,
+  Sparkles,
 } from "lucide-react";
 import { useMemo, useState, useTransition } from "react";
 
@@ -74,12 +82,14 @@ function statusRing(status: AnnotationStatus | null): string {
 function PageRow({
   page,
   annotation,
+  analysis,
   onStatus,
   onNoteChange,
   onNoteCommit,
 }: {
   page: ReportPage;
   annotation: AnnotationEntry;
+  analysis?: PageAnalysisContent;
   onStatus: (target: string, status: AnnotationStatus) => void;
   onNoteChange: (target: string, note: string) => void;
   onNoteCommit: (target: string) => void;
@@ -128,6 +138,12 @@ function PageRow({
           {broken > 0 && <Badge variant="destructive">{broken} brutt</Badge>}
           {page.seoFailCount > 0 && <Badge variant="secondary">SEO {page.seoFailCount}</Badge>}
           {page.jsDependent && <Badge variant="outline">JS</Badge>}
+          {analysis && (
+            <Badge variant="outline" className="border-primary/40 text-primary">
+              <Sparkles className="size-3" />
+              AI
+            </Badge>
+          )}
         </span>
       </AccordionTrigger>
 
@@ -141,6 +157,34 @@ function PageRow({
           <ExternalLink className="size-3.5" />
           {page.url}
         </a>
+
+        {analysis && (
+          <div className="mb-6 rounded-lg bg-primary/8 p-4 ring-1 ring-primary/20">
+            <div className="mb-2 flex items-center gap-2">
+              <Sparkles className="size-3.5 text-primary" />
+              <span className="text-xs font-semibold tracking-wide text-primary uppercase">
+                AI-vurdering
+              </span>
+              <Badge variant={severityBadge(analysis.severity)}>
+                {SEVERITY_LABEL[analysis.severity]}
+              </Badge>
+            </div>
+            <p className="text-sm text-foreground/90">{analysis.assessment}</p>
+            {analysis.suggestions.length > 0 && (
+              <ul className="mt-2 space-y-1">
+                {analysis.suggestions.map((s, i) => (
+                  <li
+                    key={`${i}-${s.slice(0, 12)}`}
+                    className="flex gap-2 text-sm text-muted-foreground"
+                  >
+                    <span className="text-primary">→</span>
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
         <div className="mb-6 rounded-lg bg-muted/40 p-3">
           <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -280,10 +324,12 @@ export function PageExplorer({
   pages,
   projectSlug,
   initialAnnotations,
+  pageAnalyses,
 }: {
   pages: ReportPage[];
   projectSlug: string;
   initialAnnotations: AnnotationMap;
+  pageAnalyses: Record<string, PageAnalysisContent>;
 }) {
   const [annotations, setAnnotations] = useState<AnnotationMap>(initialAnnotations);
   const [, startTransition] = useTransition();
@@ -456,6 +502,7 @@ export function PageExplorer({
               key={p.url}
               page={p}
               annotation={annotations[p.url] ?? EMPTY}
+              analysis={pageAnalyses[p.url]}
               onStatus={handleStatus}
               onNoteChange={handleNoteChange}
               onNoteCommit={handleNoteCommit}

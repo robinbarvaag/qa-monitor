@@ -5,7 +5,7 @@ denne fila er *hvor vi er* og *hva som er neste*.
 
 Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck passerer og kjører).
 
-**Status nå:** Fase 0–3 ✅ (Sammenlign parkert) · trigge kjøringer fra UI fungerer · Fase 4/5 neste
+**Status nå:** Fase 0–4 ✅ (Sammenlign parkert) · AI-analyselag kodet (venter på `ANTHROPIC_API_KEY` for live) · Fase 5 neste
 
 > **Designendring (2026-06-16):** Primær bruk er **overvåking av mange levende
 > nettsteder**, med URL-er hentet fra `sitemap.xml`. Per-side-QA (a11y, skjermbilde,
@@ -75,10 +75,16 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 
 ---
 
-## Fase 4 (valgfritt) — Claude-API-analyselag
+## Fase 4 — Claude-API-analyselag ✅ (kode) · ⏳ live-verifisering venter på nøkkel
 
-- [ ] Les ferdige resultater → oppsummering / fiks-forslag / auto-prioritert oppfølging
-- [ ] Holdes adskilt fra den deterministiske valideringen
+- [x] Ny `analysis`-tabell (migrasjon 0003): `kind=run_summary` (pageId=null) + `kind=page`, regenereres per kjøring
+- [x] `@qa/db`-queries: `getLatestRunPages`, `saveRunAnalyses`, `getRunAnalyses` (keyet på side-URL)
+- [x] `lib/analyze.ts`: Anthropic-SDK, **claude-opus-4-8**, tvunget strukturert output (tool_use), kompakt jsonb-digest, samtidighetsbegrenset per-side-pool
+- [x] **Begge granulariteter:** helhetlig kjøring-oppsummering + AI-vurdering per side
+- [x] «Analyser med AI»-knapp (manuell trigger) → `analyzeRunAction` → lagrer → `router.refresh()`
+- [x] UI: `AiSummary`-panel (prioriterte problemer m/forslag) + AI-blokk + «AI»-badge i hver side-accordion
+- [x] Holdes adskilt fra deterministisk validering (skriver kun til `analysis`)
+- [ ] **Krever `ANTHROPIC_API_KEY` i `.env.local`** før live-kjøring — kode + typecheck + render verifisert, selve API-runden gjenstår
 
 ---
 

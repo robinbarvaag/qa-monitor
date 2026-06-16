@@ -1,9 +1,11 @@
+import { AiSummary } from "@/components/ai-summary";
+import { AnalyzeButton } from "@/components/analyze-button";
 import { PageExplorer } from "@/components/page-explorer";
 import { RunButton } from "@/components/run-button";
 import { SiteSection } from "@/components/site-section";
 import { SummaryCards } from "@/components/summary-cards";
 import { loadProject } from "@/lib/projects";
-import { ensureProject, getAnnotations } from "@qa/db";
+import { ensureProject, getAnnotations, getRunAnalyses } from "@qa/db";
 import { Badge } from "@qa/ui/badge";
 import { Activity } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -18,6 +20,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
   const projectId = await ensureProject(slug, project.name);
   const annotations = await getAnnotations(projectId);
+  const analyses = await getRunAnalyses(slug);
 
   const { report } = project;
   const clean = report.totals.pages - report.totals.pagesWithA11y;
@@ -45,7 +48,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             </p>
           </div>
           <div className="flex items-center gap-6">
-            <RunButton slug={slug} />
+            <div className="flex items-center gap-2">
+              <AnalyzeButton slug={slug} hasAnalysis={Boolean(analyses)} />
+              <RunButton slug={slug} />
+            </div>
             <div className="text-right">
               <div className={`font-heading text-4xl font-bold tabular-nums ${healthTone}`}>
                 {healthPct}%
@@ -60,7 +66,19 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
       <div className="space-y-10">
         <SummaryCards totals={report.totals} />
-        <PageExplorer pages={report.pages} projectSlug={slug} initialAnnotations={annotations} />
+        {analyses?.summary && (
+          <AiSummary
+            summary={analyses.summary}
+            model={analyses.model}
+            createdAt={analyses.createdAt}
+          />
+        )}
+        <PageExplorer
+          pages={report.pages}
+          projectSlug={slug}
+          initialAnnotations={annotations}
+          pageAnalyses={analyses?.byUrl ?? {}}
+        />
         <SiteSection sites={report.sites} />
       </div>
     </div>

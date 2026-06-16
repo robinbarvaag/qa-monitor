@@ -1,6 +1,6 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { db } from "./client";
-import { annotation, page, pageResult, project, run, source } from "./schema";
+import { analysis, annotation, page, pageResult, project, run, source } from "./schema";
 
 /**
  * Datatilgang for oppfølging (`annotation`). Holder drizzle-spørringene i
@@ -154,6 +154,149 @@ export async function getRunStatus(runId: string): Promise<RunStatus | null> {
   if (!r) return null;
   const data = (r.data ?? {}) as { progress?: { done: number; total: number } };
   return { status: r.status, progress: data.progress ?? null, error: r.error };
+}
+
+/* ---------- AI-analyse (Fase 4) ---------- */
+
+export type AnalysisSeverity = "critical" | "serious" | "moderate" | "minor" | "info";
+
+/** Ett prioritert problem i helhetsanalysen. */
+export interface AnalysisIssue {
+  severity: AnalysisSeverity;
+  title: string;
+  detail: string;
+  suggestion: string;
+  pages?: string[]; // berørte stier/URL-er
+}
+
+/** Helhetlig analyse for én kjøring (kind=run_summary). */
+export interface RunSummaryContent {
+  headline: string;
+  issues: AnalysisIssue[];
+}
+
+/** AI-vurdering av én side (kind=page). */
+export interface PageAnalysisContent {
+  severity: AnalysisSeverity;
+  assessment: string;
+  suggestions: string[];
+}
+
+/** Alt av AI-analyse for siste kjøring, klar for UI. */
+export interface RunAnalyses {
+  model: string;
+  createdAt: string;
+  summary: RunSummaryContent | null;
+  byUrl: Record<string, PageAnalysisContent>;
+}
+
+/** Én side fra siste kjøring med id + detaljer (for å mate analysen). */
+export interface RunPageDetail {
+  pageId: string;
+  url: string;
+  httpStatus: number | null;
+  loadError: string | null;
+  a11y: unknown;
+  seo: unknown;
+  links: unknown;
+  keyboard: unknown;
+}
+
+export interface LatestRunPages {
+  runId: string;
+  name: string;
+  pages: RunPageDetail[];
+}
+
+async function latestDoneRunId(slug: string): Promise<string | null> {
+  const runs = await db
+    .select({ id: run.id })
+    .from(run)
+    .innerJoin(source, eq(source.id, run.sourceId))
+    .innerJoin(project, eq(project.id, source.projectId))
+    .where(and(eq(project.slug, slug), eq(run.status, "done")))
+    .orderBy(desc(run.finishedAt))
+    .limit(1);
+  return runs[0]?.id ?? null;
+}
+
+/** Siste fullførte kjøring med side-id + rå detaljer (input til analysen). */
+export async function getLatestRunPages(slug: string): Promise<LatestRunPages | null> {
+  const runId = await latestDoneRunId(slug);
+  if (!runId) return null;
+  const rows = await db
+    .select({
+      pageId: page.id,
+      url: page.url,
+      httpStatus: pageResult.httpStatus,
+      loadError: pageResult.loadError,
+      a11y: pageResult.a11y,
+      seo: pageResult.seo,
+      links: pageResult.links,
+      keyboard: pageResult.keyboard,
+    })
+    .from(pageResult)
+    .innerJoin(page, eq(page.id, pageResult.pageId))
+    .where(eq(pageResult.runId, runId));
+  return { runId, name: slug, pages: rows };
+}
+
+/** Lagrer en frisk analyse for kjøringen (sletter forrige først). */
+export async function saveRunAnalyses(
+  runId: string,
+  model: string,
+  summary: RunSummaryContent,
+  pages: { pageId: string; content: PageAnalysisContent }[],
+): Promise<void> {
+  await db.delete(analysis).where(eq(analysis.runId, runId));
+  await db.insert(analysis).values({
+    runId,
+    pageId: null,
+    kind: "run_summary",
+    model,
+    content: summary as unknown as Record<string, unknown>,
+  });
+  if (pages.length > 0) {
+    await db.insert(analysis).values(
+      pages.map((p) => ({
+        runId,
+        pageId: p.pageId,
+        kind: "page" as const,
+        model,
+        content: p.content as unknown as Record<string, unknown>,
+      })),
+    );
+  }
+}
+
+/** Henter AI-analysen for siste kjøring, keyet på side-URL. */
+export async function getRunAnalyses(slug: string): Promise<RunAnalyses | null> {
+  const runId = await latestDoneRunId(slug);
+  if (!runId) return null;
+
+  const summaryRows = await db
+    .select({ model: analysis.model, content: analysis.content, createdAt: analysis.createdAt })
+    .from(analysis)
+    .where(and(eq(analysis.runId, runId), isNull(analysis.pageId)))
+    .limit(1);
+  const summaryRow = summaryRows[0];
+  if (!summaryRow) return null;
+
+  const pageRows = await db
+    .select({ url: page.url, content: analysis.content })
+    .from(analysis)
+    .innerJoin(page, eq(page.id, analysis.pageId))
+    .where(and(eq(analysis.runId, runId), eq(analysis.kind, "page")));
+
+  const byUrl: Record<string, PageAnalysisContent> = {};
+  for (const r of pageRows) byUrl[r.url] = r.content as unknown as PageAnalysisContent;
+
+  return {
+    model: summaryRow.model,
+    createdAt: summaryRow.createdAt.toISOString(),
+    summary: summaryRow.content as unknown as RunSummaryContent,
+    byUrl,
+  };
 }
 
 export async function saveAnnotation(

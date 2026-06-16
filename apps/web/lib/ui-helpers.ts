@@ -1,3 +1,4 @@
+import type { AnalysisSeverity } from "@qa/db";
 import type { SeoLevel } from "./report";
 
 export type BadgeVariant = "default" | "secondary" | "destructive" | "outline" | "ghost" | "link";
@@ -37,4 +38,35 @@ export function seoBadge(level: SeoLevel): BadgeVariant {
   if (level === "fail") return "destructive";
   if (level === "warn") return "secondary";
   return "outline";
+}
+
+/* ---------- AI-analyse (Fase 4) ---------- */
+
+export const SEVERITY_LABEL: Record<AnalysisSeverity, string> = {
+  critical: "kritisk",
+  serious: "alvorlig",
+  moderate: "middels",
+  minor: "lav",
+  info: "info",
+};
+
+export function severityBadge(s: AnalysisSeverity): BadgeVariant {
+  if (s === "critical" || s === "serious") return "destructive";
+  if (s === "moderate") return "secondary";
+  return "outline";
+}
+
+export function severityDotClass(s: AnalysisSeverity): string {
+  switch (s) {
+    case "critical":
+      return "bg-destructive";
+    case "serious":
+      return "bg-orange-500";
+    case "moderate":
+      return "bg-yellow-500";
+    case "minor":
+      return "bg-sky-500";
+    default:
+      return "bg-muted-foreground";
+  }
 }

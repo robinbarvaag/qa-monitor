@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.2",
     "@qa/core": "workspace:*",
     "@qa/db": "workspace:*",
     "@qa/ui": "workspace:*",
