@@ -28,6 +28,7 @@ import datetime
 import json
 import re
 import urllib.request
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -79,6 +80,56 @@ def read_pages(excel_path: Path, only: str | None):
         if ny and only in (None, "ny"):
             pages.append((r_i, "ny", str(ny).strip(), extra))
     return pages
+
+
+def _localname(tag: str) -> str:
+    """'{ns}loc' -> 'loc' (sitemap-XML har namespace)."""
+    return tag.rsplit("}", 1)[-1].lower()
+
+
+def _fetch_sitemap_locs(url: str, depth: int = 0, seen: set | None = None) -> list[str]:
+    """Returnerer alle <loc>-URL-er. Følger sitemap-index rekursivt (maks 3 nivå)."""
+    seen = seen if seen is not None else set()
+    if url in seen or depth > 3:
+        return []
+    seen.add(url)
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            raw = resp.read()
+    except Exception as e:
+        print(f"  ADVARSEL: klarte ikke hente sitemap {url}: {e}")
+        return []
+    try:
+        root = ET.fromstring(raw)
+    except ET.ParseError as e:
+        print(f"  ADVARSEL: kunne ikke parse sitemap {url}: {e}")
+        return []
+
+    is_index = _localname(root.tag) == "sitemapindex"
+    locs = [
+        el.text.strip()
+        for el in root.iter()
+        if _localname(el.tag) == "loc" and el.text and el.text.strip()
+    ]
+    if is_index:
+        out: list[str] = []
+        for child in locs:
+            out.extend(_fetch_sitemap_locs(child, depth + 1, seen))
+        return out
+    return locs
+
+
+def read_sitemap(sitemap_url: str, limit: int | None):
+    """Henter URL-er fra en sitemap.xml. Returnerer samme form som read_pages:
+    (radnr, kolonne, url, extra). Hver URL er sin egen side (ingen gammel/ny-par)."""
+    locs = _fetch_sitemap_locs(sitemap_url)
+    # dedupe, behold rekkefølge
+    seen: set[str] = set()
+    urls = [u for u in locs if not (u in seen or seen.add(u))]
+    if limit and limit > 0:
+        urls = urls[:limit]
+    return [(i, "ny", u, {}) for i, u in enumerate(urls, start=1)]
 
 
 def get_axe_source(cache: Path) -> str | None:
@@ -1808,6 +1859,11 @@ async def main():
                         help="Ta full-height skjermbilde av hver side og vis dem i rapporten")
     parser.add_argument("--rebuild", action="store_true",
                         help="Bygg report.html på nytt fra eksisterende report.json (ingen ny crawl)")
+    parser.add_argument("--sitemap", type=str, default=None, metavar="URL",
+                        help="Hent URL-er fra en sitemap.xml i stedet for Excel "
+                             "(følger sitemap-index rekursivt). Hver URL blir én side.")
+    parser.add_argument("--limit", type=int, default=None,
+                        help="Maks antall sider å crawle (nyttig med --sitemap)")
     args = parser.parse_args()
 
     # Rebuild-modus: bare regenerer HTML fra eksisterende JSON
@@ -1820,10 +1876,18 @@ async def main():
         print(f"Bygde report.html på nytt fra {jpath}.\nÅpne: {(args.out / 'report.html').resolve()}")
         return
 
-    if not args.excel:
-        raise SystemExit("Oppgi Excel-arket, f.eks.: python3 validate_pages.py status_fra_sis.xlsx")
-
-    pages = read_pages(args.excel, args.only)
+    if args.sitemap:
+        print(f"Henter URL-er fra sitemap: {args.sitemap}")
+        pages = read_sitemap(args.sitemap, args.limit)
+    elif args.excel:
+        pages = read_pages(args.excel, args.only)
+        if args.limit and args.limit > 0:
+            pages = pages[: args.limit]
+    else:
+        raise SystemExit(
+            "Oppgi enten et Excel-ark eller --sitemap <url>, "
+            "f.eks.: validate_pages.py --sitemap https://x.no/sitemap.xml --limit 20"
+        )
     if not pages:
         raise SystemExit("Ingen gyldige URL-er funnet i arket.")
 
