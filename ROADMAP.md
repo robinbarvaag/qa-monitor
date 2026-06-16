@@ -5,7 +5,7 @@ denne fila er *hvor vi er* og *hva som er neste*.
 
 Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck passerer og kjører).
 
-**Status nå:** Fase 0 ferdig ✅ · Fase 1 i gang 🚧
+**Status nå:** Fase 0 ✅ · Fase 1 ✅ (Sammenlign parkert) · Fase 2 i gang 🚧
 
 > **Designendring (2026-06-16):** Primær bruk er **overvåking av mange levende
 > nettsteder**, med URL-er hentet fra `sitemap.xml`. Per-side-QA (a11y, skjermbilde,
@@ -28,7 +28,7 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 
 ---
 
-## Fase 1 — Next.js leser `report.json` (ingen DB) 🚧
+## Fase 1 — Next.js leser `report.json` (ingen DB) ✅
 
 > Mål: ekte UI med shadcn for **per-side-QA av ett nettsted hentet fra sitemap**.
 > Ingen DB ennå.
