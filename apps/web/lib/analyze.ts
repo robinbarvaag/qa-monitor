@@ -1,14 +1,16 @@
 /**
- * Fase 4 — AI-analyselag. Tolker ferdige, deterministiske valideringsresultater
- * og produserer (1) en helhetlig kjøring-oppsummering og (2) en vurdering per side.
- * Holdes adskilt fra selve valideringen: dette skriver kun til `analysis`-tabellen.
+ * Fase 4 — AI-analyselag (Vercel AI SDK + Anthropic). Tolker ferdige,
+ * deterministiske valideringsresultater. Helhets-oppsummeringen streames fra
+ * route-handleren (streamObject); per-side-vurderingene genereres her
+ * (generateObject) og lagres i `analysis`-tabellen. Adskilt fra valideringen.
  */
-import Anthropic from "@anthropic-ai/sdk";
-import type { PageAnalysisContent, RunPageDetail, RunSummaryContent } from "@qa/db";
+import "server-only";
+import { anthropic } from "@ai-sdk/anthropic";
+import type { PageAnalysisContent, RunPageDetail } from "@qa/db";
+import { generateObject } from "ai";
+import { pageAnalysisSchema } from "./analysis-schema";
 
 export const ANALYSIS_MODEL = "claude-opus-4-8";
-
-const SEVERITY = ["critical", "serious", "moderate", "minor", "info"] as const;
 
 /* ---------- kompakt digest av native jsonb (sparer tokens) ---------- */
 
@@ -25,6 +27,7 @@ interface RawSeo {
 interface RawLinks {
   total?: number;
   broken?: Array<{ url: string; status: number | null }>;
+  uncertain?: Array<{ url: string; status: number | null }>;
 }
 interface RawKeyboard {
   tab_stops?: number;
@@ -62,6 +65,9 @@ function digest(p: RunPageDetail) {
       .filter((s) => s.level !== "ok")
       .map((s) => ({ level: s.level, key: s.key, msg: s.msg })),
     brokenLinks: (links.broken ?? []).slice(0, 10).map((l) => ({ url: l.url, status: l.status })),
+    uncertainLinks: (links.uncertain ?? [])
+      .slice(0, 10)
+      .map((l) => ({ url: l.url, status: l.status })),
     keyboard: kb
       ? {
           tabStops: kb.tab_stops ?? 0,
@@ -74,101 +80,28 @@ function digest(p: RunPageDetail) {
   };
 }
 
-/* ---------- Anthropic-kall med tvunget strukturert output ---------- */
+/* ---------- prompts (delt mellom streaming-route og finish-action) ---------- */
 
-function client(): Anthropic {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    throw new Error("ANTHROPIC_API_KEY mangler i miljøet (.env.local).");
-  }
-  return new Anthropic({ apiKey });
-}
-
-async function structured<T>(
-  anthropic: Anthropic,
-  system: string,
-  user: string,
-  toolName: string,
-  schema: Record<string, unknown>,
-): Promise<T> {
-  const res = await anthropic.messages.create({
-    model: ANALYSIS_MODEL,
-    max_tokens: 2048,
-    system,
-    tools: [
-      {
-        name: toolName,
-        description: "Returner det strukturerte resultatet.",
-        input_schema: schema as Anthropic.Tool.InputSchema,
-      },
-    ],
-    tool_choice: { type: "tool", name: toolName },
-    messages: [{ role: "user", content: user }],
-  });
-  const block = res.content.find((b) => b.type === "tool_use");
-  if (!block || block.type !== "tool_use") {
-    throw new Error("Modellen returnerte ikke strukturert output.");
-  }
-  return block.input as T;
-}
-
-const issueSchema = {
-  type: "object",
-  properties: {
-    severity: { type: "string", enum: SEVERITY },
-    title: { type: "string", description: "Kort tittel på problemet" },
-    detail: { type: "string", description: "Hva problemet er og hvorfor det betyr noe" },
-    suggestion: { type: "string", description: "Konkret hvordan det fikses" },
-    pages: {
-      type: "array",
-      items: { type: "string" },
-      description: "Berørte stier (f.eks. /kontakt)",
-    },
-  },
-  required: ["severity", "title", "detail", "suggestion"],
-  additionalProperties: false,
-};
-
-const summarySchema = {
-  type: "object",
-  properties: {
-    headline: { type: "string", description: "1–2 setningers helsebilde for nettstedet" },
-    issues: {
-      type: "array",
-      description: "Prioriterte problemer, viktigst først (maks 6)",
-      items: issueSchema,
-    },
-  },
-  required: ["headline", "issues"],
-  additionalProperties: false,
-};
-
-const pageSchema = {
-  type: "object",
-  properties: {
-    severity: { type: "string", enum: SEVERITY, description: "Sidens samlede alvorlighet" },
-    assessment: { type: "string", description: "1–3 setningers vurdering av siden" },
-    suggestions: {
-      type: "array",
-      items: { type: "string" },
-      description: "Konkrete fiks-forslag, viktigst først (maks 5)",
-    },
-  },
-  required: ["severity", "assessment", "suggestions"],
-  additionalProperties: false,
-};
-
-const SUMMARY_SYSTEM =
+export const SUMMARY_SYSTEM =
   "Du er en norsk QA-ekspert på web-tilgjengelighet (WCAG/axe), SEO og brukskvalitet. " +
   "Du får deterministiske valideringsresultater for flere sider på ett nettsted. " +
   "Gi en kort, presis helhetsvurdering og prioriter de viktigste problemene på tvers av sider. " +
   "Vær konkret og handlingsrettet. Svar på norsk (bokmål). Ikke finn på funn som ikke står i dataene.";
 
-const PAGE_SYSTEM =
+export const PAGE_SYSTEM =
   "Du er en norsk QA-ekspert på web-tilgjengelighet (WCAG/axe), SEO og tastaturnavigasjon. " +
   "Du vurderer én enkelt side ut fra deterministiske valideringsresultater. " +
   "Gi en kort vurdering og konkrete, prioriterte fiks-forslag. Svar på norsk (bokmål). " +
   "Ikke finn på funn som ikke står i dataene; hvis siden er ren, si det.";
+
+export function summaryPrompt(name: string, pages: RunPageDetail[]): string {
+  const digests = pages.map(digest);
+  return `Nettsted: ${name}. ${pages.length} sider validert.\n\nResultater per side (JSON):\n${JSON.stringify(digests)}`;
+}
+
+function pagePrompt(p: RunPageDetail): string {
+  return `Side: ${p.url}\n\nValideringsresultat (JSON):\n${JSON.stringify(digest(p))}`;
+}
 
 /* ---------- enkel samtidighetsbegrensning ---------- */
 
@@ -185,39 +118,17 @@ async function pool<I, O>(items: I[], limit: number, fn: (item: I) => Promise<O>
   return out;
 }
 
-/* ---------- offentlig API ---------- */
-
-export interface AnalysisResult {
-  summary: RunSummaryContent;
-  pages: { pageId: string; content: PageAnalysisContent }[];
-}
-
-/** Kjører helhets- + per-side-analyse for et sett side-resultater. */
-export async function analyzePages(pages: RunPageDetail[], name: string): Promise<AnalysisResult> {
-  const anthropic = client();
-  const digests = pages.map((p) => ({ page: p, d: digest(p) }));
-
-  const summaryPromise = structured<RunSummaryContent>(
-    anthropic,
-    SUMMARY_SYSTEM,
-    `Nettsted: ${name}. ${pages.length} sider validert.\n\nResultater per side (JSON):\n${JSON.stringify(
-      digests.map((x) => x.d),
-    )}`,
-    "rapporter_oppsummering",
-    summarySchema,
-  );
-
-  const pagesPromise = pool(digests, 5, async ({ page, d }) => ({
-    pageId: page.pageId,
-    content: await structured<PageAnalysisContent>(
-      anthropic,
-      PAGE_SYSTEM,
-      `Side: ${page.url}\n\nValideringsresultat (JSON):\n${JSON.stringify(d)}`,
-      "vurder_side",
-      pageSchema,
-    ),
-  }));
-
-  const [summary, pageItems] = await Promise.all([summaryPromise, pagesPromise]);
-  return { summary, pages: pageItems };
+/** Genererer AI-vurdering per side (ikke streamet). */
+export async function analyzePerPage(
+  pages: RunPageDetail[],
+): Promise<{ pageId: string; content: PageAnalysisContent }[]> {
+  return pool(pages, 5, async (p) => {
+    const { object } = await generateObject({
+      model: anthropic(ANALYSIS_MODEL),
+      schema: pageAnalysisSchema,
+      system: PAGE_SYSTEM,
+      prompt: pagePrompt(p),
+    });
+    return { pageId: p.pageId, content: object as PageAnalysisContent };
+  });
 }

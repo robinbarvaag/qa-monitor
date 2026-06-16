@@ -1,5 +1,4 @@
-import { AiSummary } from "@/components/ai-summary";
-import { AnalyzeButton } from "@/components/analyze-button";
+import { AiAnalysisPanel } from "@/components/ai-analysis-panel";
 import { PageExplorer } from "@/components/page-explorer";
 import { RunButton } from "@/components/run-button";
 import { SiteSection } from "@/components/site-section";
@@ -23,6 +22,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   const analyses = await getRunAnalyses(slug);
 
   const { report } = project;
+  // sti/URL → full URL, så AI-panelet kan gjøre side-referanser klikkbare
+  const pathToUrl: Record<string, string> = {};
+  for (const p of report.pages) {
+    pathToUrl[p.path] = p.url;
+    pathToUrl[p.url] = p.url;
+  }
   const clean = report.totals.pages - report.totals.pagesWithA11y;
   const healthPct = report.totals.pages > 0 ? Math.round((clean / report.totals.pages) * 100) : 0;
   const healthTone =
@@ -48,10 +53,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             </p>
           </div>
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <AnalyzeButton slug={slug} hasAnalysis={Boolean(analyses)} />
-              <RunButton slug={slug} />
-            </div>
+            <RunButton slug={slug} />
             <div className="text-right">
               <div className={`font-heading text-4xl font-bold tabular-nums ${healthTone}`}>
                 {healthPct}%
@@ -66,13 +68,15 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
       <div className="space-y-10">
         <SummaryCards totals={report.totals} />
-        {analyses?.summary && (
-          <AiSummary
-            summary={analyses.summary}
-            model={analyses.model}
-            createdAt={analyses.createdAt}
-          />
-        )}
+        <AiAnalysisPanel
+          slug={slug}
+          pathToUrl={pathToUrl}
+          initial={{
+            summary: analyses?.summary ?? null,
+            model: analyses?.model ?? null,
+            createdAt: analyses?.createdAt ?? null,
+          }}
+        />
         <PageExplorer
           pages={report.pages}
           projectSlug={slug}

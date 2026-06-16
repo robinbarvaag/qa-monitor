@@ -1,5 +1,6 @@
 "use client";
 
+import { GlobalSearch } from "@/components/global-search";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -40,6 +41,9 @@ export function SiteHeader() {
           )}
         </BreadcrumbList>
       </Breadcrumb>
+      <div className="ml-auto">
+        <GlobalSearch />
+      </div>
     </header>
   );
 }

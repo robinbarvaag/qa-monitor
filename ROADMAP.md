@@ -5,7 +5,7 @@ denne fila er *hvor vi er* og *hva som er neste*.
 
 Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck passerer og kjører).
 
-**Status nå:** Fase 0–4 ✅ (Sammenlign parkert) · AI-analyselag kodet (venter på `ANTHROPIC_API_KEY` for live) · Fase 5 neste
+**Status nå:** Fase 0–4 ✅ (Sammenlign parkert) · AI-analyse streamer live (Vercel AI SDK) · globalt ⌘K-søk · Fase 5 neste
 
 > **Designendring (2026-06-16):** Primær bruk er **overvåking av mange levende
 > nettsteder**, med URL-er hentet fra `sitemap.xml`. Per-side-QA (a11y, skjermbilde,
@@ -84,7 +84,16 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 - [x] «Analyser med AI»-knapp (manuell trigger) → `analyzeRunAction` → lagrer → `router.refresh()`
 - [x] UI: `AiSummary`-panel (prioriterte problemer m/forslag) + AI-blokk + «AI»-badge i hver side-accordion
 - [x] Holdes adskilt fra deterministisk validering (skriver kun til `analysis`)
-- [ ] **Krever `ANTHROPIC_API_KEY` i `.env.local`** før live-kjøring — kode + typecheck + render verifisert, selve API-runden gjenstår
+- [x] **Streaming (Vercel AI SDK):** byttet fra `@anthropic-ai/sdk` til `ai` + `@ai-sdk/anthropic` + `@ai-sdk/react`. Helhets-panelet streames live via `streamObject`/`useObject`; per-side genereres med `generateObject` og lagres etterpå. Verifisert ende-til-ende mot live nøkkel.
+- [x] Klikkbare side-referanser i AI-panelet (sti → faktisk URL)
+
+## Finpuss (2026-06-16) ✅
+
+- [x] **Globalt ⌘K-søk** (cmdk + dialog) på tvers av prosjekter/sider, med debounce, skeletons og tastaturnavigasjon (`searchEverything` i `@qa/db`)
+- [x] Gjenbrukbar `Metric`-komponent med forklarende tooltip (tastatur/fokus-tallene)
+- [x] Header-badge ved alvorlig funn (tab-felle løftes til radens header)
+- [x] Usikre lenker vises nå (klikkbare + statusforklaring) — 403/401/429/999 telles ikke som «brutt», men kan inspiseres
+- [x] Fikset spøkelses-separator i accordion (`tailwind-merge` dedupliserte ikke `not-last:`-varianten)
 
 ---
 

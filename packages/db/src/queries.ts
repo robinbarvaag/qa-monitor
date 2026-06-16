@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { db } from "./client";
 import { analysis, annotation, page, pageResult, project, run, source } from "./schema";
 
@@ -297,6 +297,37 @@ export async function getRunAnalyses(slug: string): Promise<RunAnalyses | null> 
     summary: summaryRow.content as unknown as RunSummaryContent,
     byUrl,
   };
+}
+
+/* ---------- globalt søk (⌘K) ---------- */
+
+export interface SearchResults {
+  projects: { slug: string; name: string }[];
+  pages: { slug: string; url: string }[];
+}
+
+/** Fritekstsøk på tvers av prosjekter og overvåkede sider (URL). */
+export async function searchEverything(query: string): Promise<SearchResults> {
+  const q = query.trim();
+  if (q.length < 2) return { projects: [], pages: [] };
+  const like = `%${q}%`;
+
+  const projects = await db
+    .select({ slug: project.slug, name: project.name })
+    .from(project)
+    .where(or(ilike(project.name, like), ilike(project.slug, like)))
+    .orderBy(project.name)
+    .limit(6);
+
+  const pages = await db
+    .selectDistinct({ slug: project.slug, url: page.url })
+    .from(page)
+    .innerJoin(project, eq(project.id, page.projectId))
+    .where(ilike(page.url, like))
+    .orderBy(page.url)
+    .limit(12);
+
+  return { projects, pages };
 }
 
 export async function saveAnnotation(

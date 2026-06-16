@@ -14,13 +14,9 @@ function Accordion({ className, ...props }: AccordionPrimitive.Root.Props) {
 }
 
 function AccordionItem({ className, ...props }: AccordionPrimitive.Item.Props) {
-  return (
-    <AccordionPrimitive.Item
-      data-slot="accordion-item"
-      className={cn("not-last:border-b", className)}
-      {...props}
-    />
-  );
+  // Ingen standard-border her: rammer er layout-spesifikke og settes av konsumenten
+  // (tailwind-merge dedupliserer ikke `not-last:`-varianten pålitelig → spøkelses-striper).
+  return <AccordionPrimitive.Item data-slot="accordion-item" className={className} {...props} />;
 }
 
 function AccordionTrigger({ className, children, ...props }: AccordionPrimitive.Trigger.Props) {

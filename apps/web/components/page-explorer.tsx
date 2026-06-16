@@ -1,6 +1,7 @@
 "use client";
 
 import { saveAnnotationAction } from "@/app/actions";
+import { Metric } from "@/components/metric";
 import { ScreenshotViewer } from "@/components/screenshot-viewer";
 import type { ReportPage } from "@/lib/report";
 import {
@@ -18,6 +19,7 @@ import { Button } from "@qa/ui/button";
 import { Input } from "@qa/ui/input";
 import { MultiSelect } from "@qa/ui/multi-select";
 import { Textarea } from "@qa/ui/textarea";
+import { TooltipProvider } from "@qa/ui/tooltip";
 import {
   AlertTriangle,
   ArrowUpDown,
@@ -73,6 +75,30 @@ function DetailBlock({
   );
 }
 
+function LinkRow({
+  url,
+  status,
+  variant,
+}: {
+  url: string;
+  status: number | null;
+  variant: "destructive" | "secondary";
+}) {
+  return (
+    <li className="flex items-center gap-2">
+      <Badge variant={variant}>{status ?? "—"}</Badge>
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        className="truncate text-muted-foreground hover:text-primary hover:underline"
+      >
+        {url}
+      </a>
+    </li>
+  );
+}
+
 function statusRing(status: AnnotationStatus | null): string {
   if (status === "followup") return "ring-amber-400/70";
   if (status === "done") return "ring-emerald-500/60";
@@ -102,7 +128,7 @@ function PageRow({
   return (
     <AccordionItem
       value={page.url}
-      className={`overflow-hidden rounded-xl bg-card ring-1 not-last:border-b-0 ${statusRing(status)}`}
+      className={`overflow-hidden rounded-xl bg-card ring-1 ${statusRing(status)}`}
     >
       <AccordionTrigger className="items-center gap-3 rounded-none px-4 hover:no-underline">
         <span className={`size-2.5 shrink-0 rounded-full ${impactDotClass(worst)}`} />
@@ -136,6 +162,12 @@ function PageRow({
             </Badge>
           )}
           {broken > 0 && <Badge variant="destructive">{broken} brutt</Badge>}
+          {page.keyboard?.trap && (
+            <Badge variant="destructive">
+              <Keyboard className="size-3" />
+              Tab-felle
+            </Badge>
+          )}
           {page.seoFailCount > 0 && <Badge variant="secondary">SEO {page.seoFailCount}</Badge>}
           {page.jsDependent && <Badge variant="outline">JS</Badge>}
           {analysis && (
@@ -271,18 +303,37 @@ function PageRow({
 
           <DetailBlock icon={<Keyboard className="size-3.5" />} title="Tastatur / fokus">
             {page.keyboard ? (
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                <dt className="text-muted-foreground">Tab-stopp</dt>
-                <dd className="tabular-nums">{page.keyboard.tabStops}</dd>
-                <dt className="text-muted-foreground">Skip-lenke</dt>
-                <dd>{page.keyboard.skipLink?.present ? "ja" : "nei"}</dd>
-                <dt className="text-muted-foreground">Tab-felle</dt>
-                <dd>{page.keyboard.trap ? "ja ⚠" : "nei"}</dd>
-                <dt className="text-muted-foreground">Usynlig fokus</dt>
-                <dd className="tabular-nums">{page.keyboard.noFocusCount}</dd>
-                <dt className="text-muted-foreground">Utilgjengelige</dt>
-                <dd className="tabular-nums">{page.keyboard.unreachableCount}</dd>
-              </dl>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <Metric
+                  label="Tab-stopp"
+                  value={page.keyboard.tabStops}
+                  hint="Antall elementer som kan nås med Tab. Et veldig lavt tall kan bety at interaktivt innhold ikke er tastaturtilgjengelig."
+                />
+                <Metric
+                  label="Skip-lenke"
+                  value={page.keyboard.skipLink?.present ? "ja" : "nei"}
+                  tone={page.keyboard.skipLink?.present ? "good" : "warn"}
+                  hint="En «hopp til innhold»-lenke lar tastaturbrukere hoppe over menyen rett til innholdet (WCAG 2.4.1)."
+                />
+                <Metric
+                  label="Tab-felle"
+                  value={page.keyboard.trap ? "ja" : "nei"}
+                  tone={page.keyboard.trap ? "bad" : "good"}
+                  hint="Fokus sitter fast og kan ikke flyttes videre med tastatur. Brudd på WCAG 2.1.2 (No Keyboard Trap)."
+                />
+                <Metric
+                  label="Usynlig fokus"
+                  value={page.keyboard.noFocusCount}
+                  tone={page.keyboard.noFocusCount > 0 ? "warn" : "good"}
+                  hint="Elementer som får fokus uten synlig fokusmarkør. Gjør det vanskelig å se hvor man er (WCAG 2.4.7)."
+                />
+                <Metric
+                  label="Utilgjengelige"
+                  value={page.keyboard.unreachableCount}
+                  tone={page.keyboard.unreachableCount > 0 ? "bad" : "good"}
+                  hint="Interaktive elementer som ikke kan nås med tastatur i det hele tatt."
+                />
+              </div>
             ) : (
               <p className="text-sm text-muted-foreground">Ikke sjekket.</p>
             )}
@@ -291,17 +342,28 @@ function PageRow({
           <DetailBlock icon={<Link2 className="size-3.5" />} title="Lenker">
             <p className="text-sm text-muted-foreground">
               {page.links.total} totalt
+              {page.links.broken.length > 0 && `, ${page.links.broken.length} brutt`}
               {page.links.uncertain.length > 0 && `, ${page.links.uncertain.length} usikre`}
             </p>
             {page.links.broken.length > 0 && (
               <ul className="space-y-1 text-sm">
                 {page.links.broken.slice(0, 8).map((l) => (
-                  <li key={l.url} className="flex items-center gap-2">
-                    <Badge variant="destructive">{l.status ?? "—"}</Badge>
-                    <span className="truncate text-muted-foreground">{l.url}</span>
-                  </li>
+                  <LinkRow key={l.url} url={l.url} status={l.status} variant="destructive" />
                 ))}
               </ul>
+            )}
+            {page.links.uncertain.length > 0 && (
+              <div className="mt-3 space-y-1.5">
+                <p className="text-xs text-muted-foreground">
+                  Usikre — server svarte blokkert/avvist (403/401/429/999 e.l.). Ofte
+                  bot-blokkering, men kan også være døde sider. Sjekk manuelt:
+                </p>
+                <ul className="space-y-1 text-sm">
+                  {page.links.uncertain.slice(0, 8).map((l) => (
+                    <LinkRow key={l.url} url={l.url} status={l.status} variant="secondary" />
+                  ))}
+                </ul>
+              </div>
             )}
           </DetailBlock>
         </div>
@@ -415,101 +477,103 @@ export function PageExplorer({
     "h-8 rounded-lg border border-input bg-background px-2 text-sm text-foreground";
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="size-4 text-muted-foreground" />
-          <h2 className="font-heading text-lg font-semibold">Per side</h2>
+    <TooltipProvider>
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="size-4 text-muted-foreground" />
+            <h2 className="font-heading text-lg font-semibold">Per side</h2>
+          </div>
+          <span className="text-sm text-muted-foreground">
+            {filtered.length}/{pages.length}
+          </span>
+          {counts.followup > 0 && (
+            <span className="inline-flex items-center gap-1 text-sm text-amber-600 dark:text-amber-500">
+              <Flag className="size-3.5" />
+              {counts.followup} følg opp
+            </span>
+          )}
+          {counts.done > 0 && (
+            <span className="inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-500">
+              <Check className="size-3.5" />
+              {counts.done} ferdig
+            </span>
+          )}
         </div>
-        <span className="text-sm text-muted-foreground">
-          {filtered.length}/{pages.length}
-        </span>
-        {counts.followup > 0 && (
-          <span className="inline-flex items-center gap-1 text-sm text-amber-600 dark:text-amber-500">
-            <Flag className="size-3.5" />
-            {counts.followup} følg opp
-          </span>
-        )}
-        {counts.done > 0 && (
-          <span className="inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-500">
-            <Check className="size-3.5" />
-            {counts.done} ferdig
-          </span>
-        )}
-      </div>
 
-      <div className="sticky top-16 z-10 flex flex-wrap items-center gap-2 rounded-xl bg-card/80 p-2 ring-1 ring-foreground/10 backdrop-blur">
-        <div className="relative min-w-56 flex-1">
-          <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Søk i sti, URL eller tittel…"
-            className="pl-8"
+        <div className="sticky top-16 z-10 flex flex-wrap items-center gap-2 rounded-xl bg-card/80 p-2 ring-1 ring-foreground/10 backdrop-blur">
+          <div className="relative min-w-56 flex-1">
+            <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Søk i sti, URL eller tittel…"
+              className="pl-8"
+            />
+          </div>
+          <Toggle active={onlyA11y} onClick={() => setOnlyA11y((v) => !v)}>
+            a11y-feil
+          </Toggle>
+          <Toggle active={onlyBroken} onClick={() => setOnlyBroken((v) => !v)}>
+            brutte lenker
+          </Toggle>
+          <Toggle active={onlyErrors} onClick={() => setOnlyErrors((v) => !v)}>
+            lastefeil
+          </Toggle>
+          <MultiSelect
+            options={seoOptions}
+            value={seoKeys}
+            onChange={setSeoKeys}
+            placeholder="SEO-nøkler"
+            searchPlaceholder="Søk nøkkel…"
           />
-        </div>
-        <Toggle active={onlyA11y} onClick={() => setOnlyA11y((v) => !v)}>
-          a11y-feil
-        </Toggle>
-        <Toggle active={onlyBroken} onClick={() => setOnlyBroken((v) => !v)}>
-          brutte lenker
-        </Toggle>
-        <Toggle active={onlyErrors} onClick={() => setOnlyErrors((v) => !v)}>
-          lastefeil
-        </Toggle>
-        <MultiSelect
-          options={seoOptions}
-          value={seoKeys}
-          onChange={setSeoKeys}
-          placeholder="SEO-nøkler"
-          searchPlaceholder="Søk nøkkel…"
-        />
-        <select
-          aria-label="Status"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-          className={selectClass}
-        >
-          <option value="all">Alle statuser</option>
-          <option value="followup">Følg opp</option>
-          <option value="done">Ferdig</option>
-          <option value="none">Ikke vurdert</option>
-        </select>
-        <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <ArrowUpDown className="size-3.5" />
           <select
-            aria-label="Sortering"
-            value={sort}
-            onChange={(e) => setSort(e.target.value as Sort)}
+            aria-label="Status"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
             className={selectClass}
           >
-            <option value="path">Sti</option>
-            <option value="a11y">Flest a11y</option>
-            <option value="broken">Flest brutte</option>
-            <option value="status">Status</option>
+            <option value="all">Alle statuser</option>
+            <option value="followup">Følg opp</option>
+            <option value="done">Ferdig</option>
+            <option value="none">Ikke vurdert</option>
           </select>
-        </label>
-      </div>
+          <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <ArrowUpDown className="size-3.5" />
+            <select
+              aria-label="Sortering"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as Sort)}
+              className={selectClass}
+            >
+              <option value="path">Sti</option>
+              <option value="a11y">Flest a11y</option>
+              <option value="broken">Flest brutte</option>
+              <option value="status">Status</option>
+            </select>
+          </label>
+        </div>
 
-      {filtered.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          Ingen sider matcher filteret.
-        </p>
-      ) : (
-        <Accordion multiple className="gap-2">
-          {filtered.map((p) => (
-            <PageRow
-              key={p.url}
-              page={p}
-              annotation={annotations[p.url] ?? EMPTY}
-              analysis={pageAnalyses[p.url]}
-              onStatus={handleStatus}
-              onNoteChange={handleNoteChange}
-              onNoteCommit={handleNoteCommit}
-            />
-          ))}
-        </Accordion>
-      )}
-    </section>
+        {filtered.length === 0 ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            Ingen sider matcher filteret.
+          </p>
+        ) : (
+          <Accordion multiple className="gap-2">
+            {filtered.map((p) => (
+              <PageRow
+                key={p.url}
+                page={p}
+                annotation={annotations[p.url] ?? EMPTY}
+                analysis={pageAnalyses[p.url]}
+                onStatus={handleStatus}
+                onNoteChange={handleNoteChange}
+                onNoteCommit={handleNoteCommit}
+              />
+            ))}
+          </Accordion>
+        )}
+      </section>
+    </TooltipProvider>
   );
 }
