@@ -20,7 +20,8 @@
       "include": ["packages/ui/src/**"],
       "linter": {
         "rules": {
-          "a11y": { "noLabelWithoutControl": "off", "useFocusableInteractive": "off" }
+          "a11y": { "noLabelWithoutControl": "off", "useFocusableInteractive": "off" },
+          "correctness": { "useExhaustiveDependencies": "off" }
         }
       }
     }

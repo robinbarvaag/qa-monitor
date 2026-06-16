@@ -8,7 +8,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@qa/ui/breadcrumb";
-import { Activity } from "lucide-react";
+import { Separator } from "@qa/ui/separator";
+import { SidebarTrigger } from "@qa/ui/sidebar";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -17,14 +18,9 @@ export function SiteHeader() {
   const projectSlug = pathname.startsWith("/p/") ? decodeURIComponent(pathname.slice(3)) : null;
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur">
-      <Link href="/" className="flex items-center gap-2 md:hidden">
-        <div className="grid size-6 place-content-center rounded-md bg-primary text-primary-foreground">
-          <Activity className="size-3.5" />
-        </div>
-        <span className="font-heading text-sm font-semibold">qa-monitor</span>
-      </Link>
-
+    <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border bg-background/80 px-4 backdrop-blur">
+      <SidebarTrigger className="-ml-1" />
+      <Separator orientation="vertical" className="mr-1 h-4" />
       <Breadcrumb className="min-w-0">
         <BreadcrumbList>
           <BreadcrumbItem>

@@ -1,5 +1,16 @@
 "use client";
 
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@qa/ui/sidebar";
 import { Activity, LayoutGrid, Settings, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -29,55 +40,50 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-card/40 md:flex">
-      <div className="flex h-14 items-center gap-2.5 border-b border-border px-4">
-        <div className="grid size-7 place-content-center rounded-lg bg-primary text-primary-foreground">
-          <Activity className="size-4" />
+    <Sidebar>
+      <SidebarHeader>
+        <div className="flex h-10 items-center gap-2.5 px-2">
+          <div className="grid size-7 shrink-0 place-content-center rounded-lg bg-primary text-primary-foreground">
+            <Activity className="size-4" />
+          </div>
+          <span className="font-heading text-sm font-semibold">qa-monitor</span>
         </div>
-        <span className="font-heading text-sm font-semibold">qa-monitor</span>
-      </div>
+      </SidebarHeader>
 
-      <nav className="flex-1 space-y-0.5 p-2">
-        {NAV.map((item) => {
-          const active = item.match?.(pathname) ?? pathname === item.href;
-          const Icon = item.icon;
-          const className =
-            "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors";
-          if (item.disabled) {
-            return (
-              <span
-                key={item.label}
-                className={`${className} cursor-default text-muted-foreground/50`}
-                title="Kommer senere"
-              >
-                <Icon className="size-4" />
-                {item.label}
-              </span>
-            );
-          }
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={`${className} ${
-                active
-                  ? "bg-muted text-foreground"
-                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-              }`}
-            >
-              <Icon className="size-4" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {NAV.map((item) => {
+                const active = item.match?.(pathname) ?? pathname === item.href;
+                const Icon = item.icon;
+                return (
+                  <SidebarMenuItem key={item.label}>
+                    {item.disabled ? (
+                      <SidebarMenuButton disabled className="opacity-50">
+                        <Icon />
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    ) : (
+                      <SidebarMenuButton isActive={active} render={<Link href={item.href} />}>
+                        <Icon />
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    )}
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
 
-      <div className="border-t border-border p-2">
-        <div className="flex items-center gap-2.5 rounded-lg px-2.5 py-2">
+      <SidebarFooter>
+        <div className="flex items-center gap-2.5 px-2 py-1.5">
           <div className="size-7 shrink-0 rounded-full bg-linear-to-br from-fuchsia-500 to-violet-600" />
           <span className="truncate text-sm font-medium">robinbarvaag</span>
         </div>
-      </div>
-    </aside>
+      </SidebarFooter>
+    </Sidebar>
   );
 }

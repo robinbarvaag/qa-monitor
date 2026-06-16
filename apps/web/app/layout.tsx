@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
+import { SidebarInset, SidebarProvider } from "@qa/ui/sidebar";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -30,13 +31,13 @@ export default function RootLayout({
       className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <div className="flex min-h-screen">
+        <SidebarProvider>
           <AppSidebar />
-          <div className="flex min-w-0 flex-1 flex-col">
+          <SidebarInset>
             <SiteHeader />
             <main className="flex-1">{children}</main>
-          </div>
-        </div>
+          </SidebarInset>
+        </SidebarProvider>
       </body>
     </html>
   );

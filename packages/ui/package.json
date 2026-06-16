@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./lib/*": "./src/lib/*.ts",
+    "./hooks/*": "./src/hooks/*.ts",
     "./*": "./src/*.tsx"
   },
   "dependencies": {

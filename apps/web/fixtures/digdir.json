@@ -16,9 +16,7 @@
         "description_length": 154,
         "lang": "nb",
         "h1_count": 1,
-        "h1_texts": [
-          "Digitaliseringsdirektoratet"
-        ],
+        "h1_texts": ["Digitaliseringsdirektoratet"],
         "canonical": "https://www.digdir.no/",
         "images_total": 18,
         "images_missing_alt": 0,
@@ -138,9 +136,7 @@
         "description_length": 169,
         "lang": "nb",
         "h1_count": 1,
-        "h1_texts": [
-          "Kunstig intelligens i offentlige digitale tjenester"
-        ],
+        "h1_texts": ["Kunstig intelligens i offentlige digitale tjenester"],
         "canonical": "https://www.digdir.no/digitalisering-og-samordning/kunstig-intelligens-i-offentlige-digitale-tjenester/1397",
         "images_total": 3,
         "images_missing_alt": 0,
@@ -260,9 +256,7 @@
         "description_length": 239,
         "lang": "nb",
         "h1_count": 1,
-        "h1_texts": [
-          "Hva skal vi egentlig med kommunikasjonsrådgivere?"
-        ],
+        "h1_texts": ["Hva skal vi egentlig med kommunikasjonsrådgivere?"],
         "canonical": "https://www.digdir.no/klart-sprak/hva-skal-vi-egentlig-med-kommunikasjonsradgivere/1410",
         "images_total": 3,
         "images_missing_alt": 0,
@@ -382,9 +376,7 @@
         "description_length": 82,
         "lang": "nb",
         "h1_count": 1,
-        "h1_texts": [
-          "Unngå at brukeren havner i blindsonen"
-        ],
+        "h1_texts": ["Unngå at brukeren havner i blindsonen"],
         "canonical": "https://www.digdir.no/digitalisering-og-samordning/unnga-brukeren-havner-i-blindsonen/1436",
         "images_total": 3,
         "images_missing_alt": 0,
@@ -504,9 +496,7 @@
         "description_length": 228,
         "lang": "nb",
         "h1_count": 1,
-        "h1_texts": [
-          "Hva skjer når identiteten din blir digital?"
-        ],
+        "h1_texts": ["Hva skjer når identiteten din blir digital?"],
         "canonical": "https://www.digdir.no/digital-identitet/hva-skjer-nar-identiteten-din-blir-digital/1454",
         "images_total": 4,
         "images_missing_alt": 0,
@@ -643,9 +633,7 @@
         "description_length": 339,
         "lang": "nb",
         "h1_count": 1,
-        "h1_texts": [
-          "Hvilket kart bruker du?"
-        ],
+        "h1_texts": ["Hvilket kart bruker du?"],
         "canonical": "https://www.digdir.no/digitalisering-og-samordning/hvilket-kart-bruker-du/1468",
         "images_total": 3,
         "images_missing_alt": 0,
@@ -765,9 +753,7 @@
         "description_length": 77,
         "lang": "nb",
         "h1_count": 1,
-        "h1_texts": [
-          "Når digitaliseringen sprer seg som en farsott"
-        ],
+        "h1_texts": ["Når digitaliseringen sprer seg som en farsott"],
         "canonical": "https://www.digdir.no/felleslosninger/nar-digitaliseringen-sprer-seg-som-en-farsott/1478",
         "images_total": 3,
         "images_missing_alt": 0,
