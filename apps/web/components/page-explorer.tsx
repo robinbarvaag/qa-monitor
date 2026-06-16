@@ -18,6 +18,7 @@ import { Badge } from "@qa/ui/badge";
 import { Button } from "@qa/ui/button";
 import { Input } from "@qa/ui/input";
 import { MultiSelect } from "@qa/ui/multi-select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@qa/ui/select";
 import { Textarea } from "@qa/ui/textarea";
 import { TooltipProvider } from "@qa/ui/tooltip";
 import {
@@ -38,6 +39,19 @@ import { useMemo, useState, useTransition } from "react";
 const EMPTY: AnnotationEntry = { status: null, note: null };
 type StatusFilter = "all" | "followup" | "done" | "none";
 type Sort = "path" | "a11y" | "broken" | "status";
+
+const STATUS_LABELS: Record<StatusFilter, string> = {
+  all: "Alle statuser",
+  followup: "Følg opp",
+  done: "Ferdig",
+  none: "Ikke vurdert",
+};
+const SORT_LABELS: Record<Sort, string> = {
+  path: "Sti (A–Å)",
+  a11y: "Flest a11y-brudd",
+  broken: "Flest brutte lenker",
+  status: "Oppfølgingsstatus",
+};
 
 function Toggle({
   active,
@@ -473,9 +487,6 @@ export function PageExplorer({
     });
   }, [pages, query, onlyA11y, onlyBroken, onlyErrors, seoKeys, statusFilter, sort, annotations]);
 
-  const selectClass =
-    "h-8 rounded-lg border border-input bg-background px-2 text-sm text-foreground";
-
   return (
     <TooltipProvider>
       <section className="space-y-4">
@@ -527,31 +538,35 @@ export function PageExplorer({
             placeholder="SEO-nøkler"
             searchPlaceholder="Søk nøkkel…"
           />
-          <select
-            aria-label="Status"
+          <Select
+            items={STATUS_LABELS}
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-            className={selectClass}
+            onValueChange={(v) => setStatusFilter(v as StatusFilter)}
           >
-            <option value="all">Alle statuser</option>
-            <option value="followup">Følg opp</option>
-            <option value="done">Ferdig</option>
-            <option value="none">Ikke vurdert</option>
-          </select>
-          <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <ArrowUpDown className="size-3.5" />
-            <select
-              aria-label="Sortering"
-              value={sort}
-              onChange={(e) => setSort(e.target.value as Sort)}
-              className={selectClass}
-            >
-              <option value="path">Sti</option>
-              <option value="a11y">Flest a11y</option>
-              <option value="broken">Flest brutte</option>
-              <option value="status">Status</option>
-            </select>
-          </label>
+            <SelectTrigger size="sm" aria-label="Statusfilter" className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(STATUS_LABELS) as StatusFilter[]).map((k) => (
+                <SelectItem key={k} value={k}>
+                  {STATUS_LABELS[k]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select items={SORT_LABELS} value={sort} onValueChange={(v) => setSort(v as Sort)}>
+            <SelectTrigger size="sm" aria-label="Sortering" className="w-48">
+              <ArrowUpDown className="size-3.5 text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(SORT_LABELS) as Sort[]).map((k) => (
+                <SelectItem key={k} value={k}>
+                  {SORT_LABELS[k]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {filtered.length === 0 ? (
