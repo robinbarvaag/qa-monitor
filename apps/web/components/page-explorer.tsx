@@ -1,6 +1,7 @@
 "use client";
 
 import { saveAnnotationAction } from "@/app/actions";
+import { Expandable } from "@/components/expandable";
 import { Metric } from "@/components/metric";
 import { ScreenshotViewer } from "@/components/screenshot-viewer";
 import type { ReportPage } from "@/lib/report";
@@ -79,7 +80,7 @@ function DetailBlock({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 rounded-xl bg-muted/30 p-4 ring-1 ring-foreground/5">
       <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
         {icon}
         {title}
@@ -215,20 +216,22 @@ function PageRow({
                 {SEVERITY_LABEL[analysis.severity]}
               </Badge>
             </div>
-            <p className="text-sm text-foreground/90">{analysis.assessment}</p>
-            {analysis.suggestions.length > 0 && (
-              <ul className="mt-2 space-y-1">
-                {analysis.suggestions.map((s, i) => (
-                  <li
-                    key={`${i}-${s.slice(0, 12)}`}
-                    className="flex gap-2 text-sm text-muted-foreground"
-                  >
-                    <span className="text-primary">→</span>
-                    {s}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <Expandable collapsedHeight={120}>
+              <p className="text-sm text-foreground/90">{analysis.assessment}</p>
+              {analysis.suggestions.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {analysis.suggestions.map((s, i) => (
+                    <li
+                      key={`${i}-${s.slice(0, 12)}`}
+                      className="flex gap-2 text-sm text-muted-foreground"
+                    >
+                      <span className="text-primary">→</span>
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Expandable>
           </div>
         )}
 
@@ -268,7 +271,7 @@ function PageRow({
           />
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           <DetailBlock icon={<AlertTriangle className="size-3.5" />} title="Tilgjengelighet (axe)">
             {page.a11y.violations.length === 0 ? (
               <p className="text-sm text-muted-foreground">Ingen brudd 🎉</p>

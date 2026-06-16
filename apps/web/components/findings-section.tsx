@@ -16,6 +16,7 @@ import { Button } from "@qa/ui/button";
 import { Input } from "@qa/ui/input";
 import {
   Check,
+  ChevronDown,
   ExternalLink,
   Flag,
   GitBranch,
@@ -204,6 +205,7 @@ export function FindingsSection({
   const [, startTransition] = useTransition();
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
   const sorted = useMemo(
     () => [...findings].sort((a, b) => RANK[b.severity] - RANK[a.severity]),
@@ -275,16 +277,30 @@ export function FindingsSection({
           Ingen åpne Dependabot-varsler 🎉 (eller ikke skannet ennå — trykk «Skann Dependabot»).
         </p>
       ) : (
-        <ul className="space-y-2">
-          {sorted.map((f) => (
-            <FindingCard
-              key={f.fingerprint}
-              finding={f}
-              status={annotations[f.fingerprint]?.status ?? null}
-              onStatus={handleStatus}
-            />
-          ))}
-        </ul>
+        <div className="space-y-2">
+          <ul className="space-y-2">
+            {(showAll ? sorted : sorted.slice(0, 5)).map((f) => (
+              <FindingCard
+                key={f.fingerprint}
+                finding={f}
+                status={annotations[f.fingerprint]?.status ?? null}
+                onStatus={handleStatus}
+              />
+            ))}
+          </ul>
+          {sorted.length > 5 && (
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+            >
+              <ChevronDown
+                className={`size-3.5 transition-transform ${showAll ? "rotate-180" : ""}`}
+              />
+              {showAll ? "Vis færre" : `Vis alle ${sorted.length} funn`}
+            </button>
+          )}
+        </div>
       )}
     </section>
   );

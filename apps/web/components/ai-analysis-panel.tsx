@@ -1,6 +1,7 @@
 "use client";
 
 import { finishAnalysisAction } from "@/app/actions";
+import { Expandable } from "@/components/expandable";
 import { runSummarySchema } from "@/lib/analysis-schema";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import type { RunSummaryContent } from "@qa/db";
@@ -101,7 +102,13 @@ export function AiAnalysisPanel({
       {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
 
       {hasSummary ? (
-        <AiSummaryView summary={shownSummary} pathToUrl={pathToUrl} streaming={isLoading} />
+        isLoading ? (
+          <AiSummaryView summary={shownSummary} pathToUrl={pathToUrl} streaming />
+        ) : (
+          <Expandable collapsedHeight={360}>
+            <AiSummaryView summary={shownSummary} pathToUrl={pathToUrl} />
+          </Expandable>
+        )
       ) : (
         !streamingActive && (
           <p className="text-sm text-muted-foreground">
