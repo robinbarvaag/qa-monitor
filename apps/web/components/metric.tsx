@@ -12,11 +12,11 @@ const toneText: Record<MetricTone, string> = {
   warn: "text-amber-600 dark:text-amber-500",
   bad: "text-destructive",
 };
-const toneRing: Record<MetricTone, string> = {
-  default: "ring-foreground/10",
-  good: "ring-emerald-500/30",
-  warn: "ring-amber-400/40",
-  bad: "ring-destructive/40",
+const toneBox: Record<MetricTone, string> = {
+  default: "bg-muted/40 ring-foreground/10",
+  good: "bg-emerald-500/10 ring-emerald-500/30",
+  warn: "bg-amber-400/10 ring-amber-400/40",
+  bad: "bg-destructive/10 ring-destructive/40",
 };
 
 /**
@@ -38,21 +38,21 @@ export function Metric({
 }) {
   const box = (
     <div
-      className={`flex w-full flex-col gap-0.5 rounded-lg bg-background/60 px-3 py-2 text-left ring-1 ${toneRing[tone]}`}
+      className={`flex h-full w-full flex-col justify-between gap-1 rounded-lg px-3 py-2 text-left ring-1 ${toneBox[tone]}`}
     >
-      <span className="flex items-center gap-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+      <span className="flex min-h-7 items-start gap-1 text-[11px] leading-tight font-medium tracking-wide text-muted-foreground uppercase">
         {icon}
         {label}
-        {hint && <HelpCircle className="size-3 opacity-50" />}
+        {hint && <HelpCircle className="mt-px size-3 shrink-0 opacity-50" />}
       </span>
-      <span className={`text-sm font-semibold tabular-nums ${toneText[tone]}`}>{value}</span>
+      <span className={`text-base font-semibold tabular-nums ${toneText[tone]}`}>{value}</span>
     </div>
   );
 
   if (!hint) return box;
   return (
     <Tooltip>
-      <TooltipTrigger className="cursor-help rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/50">
+      <TooltipTrigger className="block h-full w-full cursor-help rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/50">
         {box}
       </TooltipTrigger>
       <TooltipContent className="max-w-xs text-pretty">{hint}</TooltipContent>

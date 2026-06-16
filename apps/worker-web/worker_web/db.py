@@ -23,8 +23,10 @@ def _save_screenshot(src: Path, slug: str, name: str) -> str:
         h = round(h * 800 / w)
         w = 800
         im = im.resize((w, h))
-    if h > 2000:
-        im = im.crop((0, 0, w, 2000))
+    # Behold hele sidehøyden (full-page-skjermbilde). Kun et høyt tak mot
+    # patologiske uendelig-scroll-sider; vanlige sider beholdes komplette.
+    if h > 12000:
+        im = im.crop((0, 0, w, 12000))
     im.save(dst_dir / name, "JPEG", quality=60, optimize=True)
     return f"{slug}/{name}"
 

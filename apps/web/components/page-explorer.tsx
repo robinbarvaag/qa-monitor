@@ -320,7 +320,7 @@ function PageRow({
 
           <DetailBlock icon={<Keyboard className="size-3.5" />} title="Tastatur / fokus">
             {page.keyboard ? (
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <div className="grid auto-rows-fr grid-cols-2 gap-2 sm:grid-cols-3">
                 <Metric
                   label="Tab-stopp"
                   value={page.keyboard.tabStops}
