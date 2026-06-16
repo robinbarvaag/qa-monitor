@@ -27,3 +27,23 @@ export const pageAnalysisSchema = z.object({
 
 export type RunSummary = z.infer<typeof runSummarySchema>;
 export type PageAnalysis = z.infer<typeof pageAnalysisSchema>;
+
+/* ---------- funn-utbedringsplan (Fase 5 + AI) ---------- */
+
+export const RISK = ["low", "medium", "high"] as const;
+
+export const findingsActionSchema = z.object({
+  title: z.string().describe("Kort handling, f.eks. «Oppgrader next til 16.2.5»"),
+  severity: z.enum(SEVERITY).describe("Høyeste alvorlighet denne handlingen lukker"),
+  risk: z.enum(RISK).describe("Risiko ved selve oppgraderingen: patch/minor=low, major=high"),
+  command: z.string().describe("Kommando (prosjektet bruker bun), f.eks. «bun add next@16.2.5»"),
+  addresses: z.number().int().describe("Antall funn denne handlingen lukker"),
+  detail: z.string().describe("Kort begrunnelse + evt. forbehold"),
+});
+
+export const findingsSummarySchema = z.object({
+  headline: z.string().describe("1–2 setninger: hva som må gjøres for å lukke flest funn"),
+  actions: z.array(findingsActionSchema).describe("Prioriterte handlinger, viktigst først"),
+});
+
+export type FindingsSummary = z.infer<typeof findingsSummarySchema>;

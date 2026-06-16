@@ -6,7 +6,7 @@
  */
 import "server-only";
 import { anthropic } from "@ai-sdk/anthropic";
-import type { PageAnalysisContent, RunPageDetail } from "@qa/db";
+import type { FindingRow, PageAnalysisContent, RunPageDetail } from "@qa/db";
 import { generateObject } from "ai";
 import { pageAnalysisSchema } from "./analysis-schema";
 
@@ -101,6 +101,37 @@ export function summaryPrompt(name: string, pages: RunPageDetail[]): string {
 
 function pagePrompt(p: RunPageDetail): string {
   return `Side: ${p.url}\n\nValideringsresultat (JSON):\n${JSON.stringify(digest(p))}`;
+}
+
+/* ---------- funn-utbedringsplan (Dependabot) ---------- */
+
+export const FINDINGS_SYSTEM =
+  "Du er en norsk sikkerhets- og avhengighetsekspert. Du får en liste Dependabot-funn " +
+  "(pakke, økosystem, alvorlighet, sårbar versjon, første patchede versjon, beskrivelse). " +
+  "Konsolider dem til en kort, handlingsrettet utbedringsplan: grupper funn som løses av samme " +
+  "oppgradering, anbefal konkret målversjon, og vurder hvor trygg oppgraderingen er " +
+  "(patch/minor = lav risiko, major = høyere). Prosjektet bruker bun (foreslå bun-kommandoer). " +
+  "Vær konkret og ærlig om risiko. Svar på norsk (bokmål). Ikke finn på noe som ikke følger av dataene.";
+
+interface FindingData {
+  ecosystem?: string | null;
+  vulnerableRange?: string | null;
+  firstPatched?: string | null;
+}
+
+export function findingsPrompt(findings: FindingRow[]): string {
+  const digest = findings.map((f) => {
+    const d = (f.data ?? {}) as FindingData;
+    return {
+      package: f.subject,
+      ecosystem: d.ecosystem ?? null,
+      severity: f.severity,
+      title: f.title,
+      vulnerableRange: d.vulnerableRange ?? null,
+      firstPatched: d.firstPatched ?? null,
+    };
+  });
+  return `${findings.length} Dependabot-funn.\n\nFunn (JSON):\n${JSON.stringify(digest)}`;
 }
 
 /* ---------- enkel samtidighetsbegrensning ---------- */

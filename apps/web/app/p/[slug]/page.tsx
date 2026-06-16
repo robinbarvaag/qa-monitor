@@ -8,6 +8,7 @@ import { loadProject } from "@/lib/projects";
 import {
   ensureProject,
   getAnnotations,
+  getFindingsAnalysis,
   getGithubSource,
   getLatestFindings,
   getRunAnalyses,
@@ -29,6 +30,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   const analyses = await getRunAnalyses(slug);
   const githubSource = await getGithubSource(slug);
   const findings = githubSource ? await getLatestFindings(slug) : [];
+  const findingsAnalysis = githubSource ? await getFindingsAnalysis(slug) : null;
 
   const { report } = project;
   // sti/URL → full URL, så AI-panelet kan gjøre side-referanser klikkbare
@@ -98,6 +100,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           source={githubSource}
           findings={findings}
           initialAnnotations={annotations}
+          analysis={findingsAnalysis}
         />
       </div>
     </div>

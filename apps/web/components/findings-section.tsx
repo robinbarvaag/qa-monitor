@@ -1,12 +1,14 @@
 "use client";
 
 import { addGithubSourceAction, runGithubScanAction, saveAnnotationAction } from "@/app/actions";
+import { FindingsAnalysis } from "@/components/findings-analysis";
 import { SEVERITY_LABEL, severityBadge, severityDotClass } from "@/lib/ui-helpers";
 import type {
   AnnotationMap,
   AnnotationStatus,
   FindingRow,
   FindingSeverity,
+  FindingsAnalysis as FindingsAnalysisData,
   GithubConfig,
 } from "@qa/db";
 import { Badge } from "@qa/ui/badge";
@@ -189,11 +191,13 @@ export function FindingsSection({
   source,
   findings,
   initialAnnotations,
+  analysis,
 }: {
   slug: string;
   source: GithubConfig | null;
   findings: FindingRow[];
   initialAnnotations: AnnotationMap;
+  analysis: FindingsAnalysisData | null;
 }) {
   const router = useRouter();
   const [annotations, setAnnotations] = useState<AnnotationMap>(initialAnnotations);
@@ -261,6 +265,8 @@ export function FindingsSection({
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
+
+      {source && sorted.length > 0 && <FindingsAnalysis slug={slug} initial={analysis} />}
 
       {!source ? (
         <ConnectForm slug={slug} />

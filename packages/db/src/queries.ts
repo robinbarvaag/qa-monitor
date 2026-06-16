@@ -398,8 +398,7 @@ export async function runGithubFindings(slug: string, findings: FindingInput[]):
   return findings.length;
 }
 
-/** Funn fra siste fullførte github-kjøring for prosjektet. */
-export async function getLatestFindings(slug: string): Promise<FindingRow[]> {
+async function latestGithubRunId(slug: string): Promise<string | null> {
   const runs = await db
     .select({ id: run.id })
     .from(run)
@@ -408,7 +407,12 @@ export async function getLatestFindings(slug: string): Promise<FindingRow[]> {
     .where(and(eq(project.slug, slug), eq(source.type, "github"), eq(run.status, "done")))
     .orderBy(desc(run.finishedAt))
     .limit(1);
-  const runId = runs[0]?.id;
+  return runs[0]?.id ?? null;
+}
+
+/** Funn fra siste fullførte github-kjøring for prosjektet. */
+export async function getLatestFindings(slug: string): Promise<FindingRow[]> {
+  const runId = await latestGithubRunId(slug);
   if (!runId) return [];
 
   const rows = await db
@@ -422,6 +426,61 @@ export async function getLatestFindings(slug: string): Promise<FindingRow[]> {
     .from(finding)
     .where(eq(finding.runId, runId));
   return rows.map((r) => ({ ...r, data: (r.data ?? {}) as Record<string, unknown> }));
+}
+
+/* ---------- AI-utbedringsplan for funn (lagres i github-run.data) ---------- */
+
+export type FindingRisk = "low" | "medium" | "high";
+
+export interface FindingsAction {
+  title: string;
+  severity: FindingSeverity;
+  risk: FindingRisk;
+  command: string;
+  addresses: number;
+  detail: string;
+}
+
+export interface FindingsSummaryContent {
+  headline: string;
+  actions: FindingsAction[];
+}
+
+export interface FindingsAnalysis {
+  model: string;
+  analyzedAt: string;
+  summary: FindingsSummaryContent;
+}
+
+/** Lagrer AI-utbedringsplanen på siste github-kjøring (regenereres ved ny skann). */
+export async function saveFindingsAnalysis(
+  slug: string,
+  model: string,
+  summary: FindingsSummaryContent,
+): Promise<void> {
+  const runId = await latestGithubRunId(slug);
+  if (!runId) return;
+  await db
+    .update(run)
+    .set({
+      data: { analysis: summary, model, analyzedAt: new Date().toISOString() } as Record<
+        string,
+        unknown
+      >,
+    })
+    .where(eq(run.id, runId));
+}
+
+/** Henter lagret AI-utbedringsplan for siste github-kjøring. */
+export async function getFindingsAnalysis(slug: string): Promise<FindingsAnalysis | null> {
+  const runId = await latestGithubRunId(slug);
+  if (!runId) return null;
+  const rows = await db.select({ data: run.data }).from(run).where(eq(run.id, runId)).limit(1);
+  const data = rows[0]?.data as
+    | { analysis?: FindingsSummaryContent; model?: string; analyzedAt?: string }
+    | undefined;
+  if (!data?.analysis || !data.model || !data.analyzedAt) return null;
+  return { model: data.model, analyzedAt: data.analyzedAt, summary: data.analysis };
 }
 
 /* ---------- globalt søk (⌘K) ---------- */
