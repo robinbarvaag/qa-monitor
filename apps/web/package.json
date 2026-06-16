@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@qa/core": "workspace:*",
+    "@qa/db": "workspace:*",
     "@qa/ui": "workspace:*",
     "lucide-react": "^1.18.0",
     "next": "16.2.9",

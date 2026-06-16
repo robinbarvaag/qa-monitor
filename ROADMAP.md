@@ -45,21 +45,22 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 - [x] **Dashboard-shell** (Vercel-aktig): sidebar-nav + topbar/breadcrumb, mørkt tema
 - [x] **Prosjektoversikt** (`/`): grid av nettsteds-kort med helse-%; detalj på `/p/[slug]`
 - [x] Flere nettsteder: hver `fixtures/<slug>.json` = ett prosjekt (uutilsynet + digdir)
+- [x] Sortering (sti/a11y/brutte/status) + reaktive tellinger (følg opp / ferdig)
+- [x] Per-rad status-UI (følg opp / ferdig + notat) — **i DB** (`annotation`), ikke localStorage
 - [ ] Skjermbilder i fixturen + per-side-detalj (krever static-serving av `shots/`)
-- [ ] Sortering + reaktive tellekort som speiler aktivt filter
 - [ ] **Sammenlign** (migrerings-modus, sekundær): scoreboard med deltaer + gammel/ny side-om-side for sider som deler `pairKey`
-- [ ] Per-rad status-UI (følg opp / ferdig + notat) — lokalt i Fase 1, flyttes til DB i Fase 2
-- [ ] **Akseptanse:** velg et nettsted → se per-side-QA fra sitemap med filtre; migrerings-visning fungerer for et url-par
+- [x] **Akseptanse:** velg et nettsted → se per-side-QA fra sitemap med filtre + oppfølging
 
 ---
 
-## Fase 2 — Postgres + Drizzle
+## Fase 2 — Postgres + Drizzle 🚧
 
-- [ ] `.env` med `DATABASE_URL` (lokal Postgres eller Neon/Supabase)
-- [ ] `bun db:generate && bun db:migrate`
+- [x] `DATABASE_URL` (Neon) wiret; root `.env.local` lastes av både drizzle-kit og Next (`@qa/db` env-loader)
+- [x] `bun db:generate && bun db:migrate` → alle 7 tabeller i Neon
+- [x] Oppfølging → `annotation` via `@qa/db`-queries + server action (verifisert round-trip)
 - [ ] Refaktorer Python-scriptet til `apps/worker-web` (`python -m worker_web --run-id <uuid>`)
 - [ ] Worker leser `source.config.mode` (`sitemap | list | migration`), upserter `page`-rader (én per URL, sitemap = primær), skriver `page_result` + skjermbilder via lokal-disk-`BlobStore`; setter `run.status`
-- [ ] Appen leser fra DB i stedet for fixture; oppfølging → `annotation` (server actions)
+- [ ] Appen leser **rapportdata** fra DB i stedet for fixture (oppfølging er allerede i DB)
 - [ ] **Akseptanse:** worker → rader i DB → app viser dem; oppfølging overlever ny kjøring
 
 ---

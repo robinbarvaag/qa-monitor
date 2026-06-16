@@ -1,19 +1,22 @@
 import { PageExplorer } from "@/components/page-explorer";
 import { SiteSection } from "@/components/site-section";
 import { SummaryCards } from "@/components/summary-cards";
-import { listProjectSlugs, loadProject } from "@/lib/projects";
+import { loadProject } from "@/lib/projects";
+import { ensureProject, getAnnotations } from "@qa/db";
 import { Badge } from "@qa/ui/badge";
 import { Activity } from "lucide-react";
 import { notFound } from "next/navigation";
 
-export async function generateStaticParams() {
-  return (await listProjectSlugs()).map((slug) => ({ slug }));
-}
+// Oppfølging leses fra DB per request → dynamisk render.
+export const dynamic = "force-dynamic";
 
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const project = await loadProject(slug);
   if (!project) notFound();
+
+  const projectId = await ensureProject(slug, project.name);
+  const annotations = await getAnnotations(projectId);
 
   const { report } = project;
   const clean = report.totals.pages - report.totals.pagesWithA11y;
@@ -53,7 +56,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
       <div className="space-y-10">
         <SummaryCards totals={report.totals} />
-        <PageExplorer pages={report.pages} />
+        <PageExplorer pages={report.pages} projectSlug={slug} initialAnnotations={annotations} />
         <SiteSection sites={report.sites} />
       </div>
     </div>
