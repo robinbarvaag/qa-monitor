@@ -36,10 +36,14 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 - [x] Scaffold `apps/web` (`create-next-app` + `shadcn init`), tsconfig extender `@qa/config/tsconfig/nextjs.json`
 - [x] Legg til `@qa/core` som workspace-dep (typene)
 - [x] Generaliser `page`-modellen til ÉN URL + `pairKey` (schema + typer)
-- [ ] Refaktorer validatoren: les URL-er fra **sitemap.xml** (sitemap-index rekursivt) i tillegg til Excel; legg til `--limit`
-- [ ] Generer `report.json` mot seed `uutilsynet.no/sitemap.xml` (cap ~15–20 sider) → `apps/web/fixtures/`
-- [ ] **Per side** (hovedvisning): liste over sider med tellekort + filtre (§5): fritekstsøk, sortering, «bare a11y/brutte/lastefeil», status, SEO-nøkkel; detalj per side (a11y/seo/tastatur/lenker + skjermbilde)
-- [ ] **Nettsted**-visning: robots/AI-bot allow-block, sitemaps, llms.txt
+- [x] Flytt shadcn-primitiver til delt `@qa/ui`-pakke (komponenter via package exports)
+- [x] Refaktorer validatoren: les URL-er fra **sitemap.xml** (sitemap-index rekursivt) i tillegg til Excel; `--limit`
+- [x] Generer `report.json` mot seed `uutilsynet.no/sitemap.xml` (10 sider) → `apps/web/fixtures/`
+- [x] `lib/report.ts`: normaliser native `report.json` → typet UI-modell
+- [x] **Per side** (hovedvisning): tellekort + filtre (fritekstsøk, «bare a11y/brutte/lastefeil», SEO-nøkkel); ekspanderbar detalj (a11y/seo/tastatur/lenker)
+- [x] **Nettsted**-visning: robots/AI-bot allow-block, sitemaps, llms.txt
+- [ ] Skjermbilder i fixturen + per-side-detalj (krever static-serving av `shots/`)
+- [ ] Sortering + reaktive tellekort som speiler aktivt filter
 - [ ] **Sammenlign** (migrerings-modus, sekundær): scoreboard med deltaer + gammel/ny side-om-side for sider som deler `pairKey`
 - [ ] Per-rad status-UI (følg opp / ferdig + notat) — lokalt i Fase 1, flyttes til DB i Fase 2
 - [ ] **Akseptanse:** velg et nettsted → se per-side-QA fra sitemap med filtre; migrerings-visning fungerer for et url-par
@@ -81,8 +85,12 @@ Regel: ikke start neste fase før forrige er grønn (`bun check` + typecheck pas
 
 ## Beslutninger underveis
 
-- **Config-pakke:** `@qa/config` holder tsconfig-presets. Biome + turbo blir på rot
-  (Biome fungerer best som én rot-config).
+- **Config-pakke:** `@qa/config` holder tsconfig-presets (`base`/`nextjs`/`react-library`).
+  Biome + turbo blir på rot (Biome fungerer best som én rot-config).
+- **Delt UI:** shadcn-primitiver bor i `@qa/ui` (ikke i `apps/web`), konsumeres via package
+  exports (`@qa/ui/components/ui/*`, `@qa/ui/lib/utils`). Apper transpilerer pakken
+  (`transpilePackages`) og scanner den for Tailwind-klasser (`@source`). Tema/CSS blir
+  i appen inntil en app nr. 2 trenger det.
 - **Pakkescope:** `@qa/*` (kan døpes om — spør først, jf. HANDOFF §8).
 - **page-modell (2026-06-16):** `page` = ÉN overvåket URL (sitemap-primær). Migrering
   modelleres som to sider med samme `pairKey` (ikke `oldUrl`/`newUrl`/`column`).
