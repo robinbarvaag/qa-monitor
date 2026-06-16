@@ -1,7 +1,7 @@
 import type { ReportSite } from "@/lib/report";
 import { Badge } from "@qa/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@qa/ui/card";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 
 function YesNo({ ok, label }: { ok: boolean; label: string }) {
   return (
@@ -41,6 +41,18 @@ export function SiteSection({ sites }: { sites: ReportSite[] }) {
                   <YesNo ok={site.llmsTxt} label="llms.txt" />
                   <YesNo ok={site.llmsFullTxt} label="llms-full.txt" />
                 </div>
+
+                {site.softFound && (
+                  <div className="flex items-start gap-2 rounded-lg bg-destructive/10 p-3 text-sm ring-1 ring-destructive/30">
+                    <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+                    <p>
+                      <span className="font-medium text-destructive">Soft 404:</span> serveren
+                      svarer <span className="font-mono">200 OK</span> på sider som ikke finnes. Det
+                      bør gi <span className="font-mono">404</span> — soft-404 skader SEO og skjuler
+                      ekte lenkefeil (også i denne rapporten).
+                    </p>
+                  </div>
+                )}
 
                 {bots.length > 0 && (
                   <div>

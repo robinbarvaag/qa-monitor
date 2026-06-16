@@ -62,6 +62,7 @@ interface RawSite {
   };
   llms_txt?: { exists: boolean; status?: number };
   llms_full_txt?: { exists: boolean; status?: number };
+  soft_404?: { status?: number; is_soft_404?: boolean };
 }
 interface RawReport {
   generated?: string;
@@ -142,6 +143,8 @@ export interface ReportSite {
   sitemaps: string[];
   llmsTxt: boolean;
   llmsFullTxt: boolean;
+  /** Serveren svarer 200 på en URL som ikke finnes (soft 404). */
+  softFound: boolean;
 }
 export interface Report {
   generated: string | null;
@@ -240,6 +243,7 @@ function normalizeSite(s: RawSite): ReportSite {
     sitemaps: s.robots?.sitemaps ?? [],
     llmsTxt: Boolean(s.llms_txt?.exists),
     llmsFullTxt: Boolean(s.llms_full_txt?.exists),
+    softFound: Boolean(s.soft_404?.is_soft_404),
   };
 }
 

@@ -132,27 +132,11 @@ def read_sitemap(sitemap_url: str, limit: int | None):
     return [(i, "ny", u, {}) for i, u in enumerate(urls, start=1)]
 
 
-def _fetch_html(url: str) -> str | None:
-    """Henter HTML for crawl-traversering (hopper over ikke-HTML/feil)."""
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": UA})
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            ctype = resp.headers.get("Content-Type", "")
-            if "html" not in ctype.lower():
-                return None
-            charset = resp.headers.get_content_charset() or "utf-8"
-            return resp.read(2_000_000).decode(charset, errors="replace")
-    except Exception:
-        return None
-
-
-_HREF_RE = re.compile(r"""href=["']([^"'#]+)""", re.IGNORECASE)
-
-
-def crawl_site(base_url: str, limit: int | None):
-    """Fallback når sitemap mangler: bredde-først-traversering fra base_url,
-    følger interne lenker (samme origin). Samme form som read_sitemap.
-    Uten --limit settes et hardt tak på 100 sider."""
+async def crawl_site(base_url: str, limit: int | None):
+    """Fallback når sitemap mangler: bredde-først-traversering fra base_url med
+    full JS-rendring (Playwright), så vi også fanger lenker som legges inn av
+    JavaScript (SPA-er). Følger interne lenker (samme origin). Samme form som
+    read_sitemap. Uten --limit settes et hardt tak på 100 sider."""
     max_pages = limit if (limit and limit > 0) else 100
     origin = urlparse(base_url).netloc
     seen: set[str] = set()
@@ -166,21 +150,34 @@ def crawl_site(base_url: str, limit: int | None):
             return f"{p.scheme}://{p.netloc}"
         return u[:-1] if u.endswith("/") else u
 
-    while queue and len(order) < max_pages:
-        url = queue.pop(0)
-        key = norm(url)
-        if key in seen:
-            continue
-        seen.add(key)
-        html = _fetch_html(url)
-        if html is None:
-            continue
-        order.append(key)
-        for m in _HREF_RE.finditer(html):
-            link = urljoin(url, m.group(1).strip())
-            p = urlparse(link)
-            if p.scheme in ("http", "https") and p.netloc == origin and norm(link) not in seen:
-                queue.append(link)
+    async with async_playwright() as pw:
+        browser = await pw.chromium.launch()
+        page = await browser.new_page(user_agent=UA)
+        while queue and len(order) < max_pages:
+            url = queue.pop(0)
+            key = norm(url)
+            if key in seen:
+                continue
+            seen.add(key)
+            try:
+                await page.goto(url, wait_until="load", timeout=30000)
+                await page.wait_for_timeout(800)  # la hydrering legge til lenker
+                hrefs = await page.eval_on_selector_all(
+                    "a[href]", "els => els.map(e => e.href)"
+                )
+            except Exception:
+                continue
+            order.append(key)
+            for h in hrefs:
+                link = urldefrag(h)[0]
+                p = urlparse(link)
+                if (
+                    p.scheme in ("http", "https")
+                    and p.netloc == origin
+                    and norm(link) not in seen
+                ):
+                    queue.append(link)
+        await browser.close()
     print(f"Crawl fant {len(order)} sider (origin: {origin}).")
     return [(i, "ny", u, {}) for i, u in enumerate(order, start=1)]
 
@@ -671,7 +668,10 @@ async def check_site(context, origin, scheme):
     try:
         r = await context.request.get(base + "/robots.txt", timeout=15000,
                                       headers={"User-Agent": UA})
-        if r.status == 200:
+        ct = (r.headers.get("content-type") or "").lower()
+        # SPA-er svarer ofte 200 + text/html på alt (også /robots.txt). En ekte
+        # robots.txt er ren tekst – krev at svaret ikke er HTML.
+        if r.status == 200 and "html" not in ct:
             txt = await r.text()
             rp = RobotFileParser()
             rp.parse(txt.splitlines())
@@ -688,7 +688,7 @@ async def check_site(context, origin, scheme):
                 "sitemaps": rp.site_maps() or [],
             }
         else:
-            site["robots"] = {"exists": False, "status": r.status}
+            site["robots"] = {"exists": False, "status": r.status, "content_type": ct}
     except Exception as e:
         site["robots"] = {"error": str(e)}
 
@@ -697,10 +697,21 @@ async def check_site(context, origin, scheme):
             r = await context.request.get(base + path, timeout=15000,
                                           headers={"User-Agent": UA})
             ct = (r.headers.get("content-type") or "").lower()
-            site[key] = {"exists": r.status == 200, "status": r.status,
+            # Samme felle: en ekte llms.txt er tekst/markdown, ikke text/html.
+            exists = r.status == 200 and "html" not in ct
+            site[key] = {"exists": exists, "status": r.status,
                          "content_type": ct, "url": base + path}
         except Exception as e:
             site[key] = {"error": str(e)}
+
+    # Soft-404: svarer nettstedet 200 på en URL som garantert ikke finnes?
+    # (SPA-er med catch-all gjør ofte det – dårlig for SEO og skjuler ekte feil.)
+    try:
+        probe = base + "/qa-monitor-404-probe-zx91kqd7"
+        r = await context.request.get(probe, timeout=15000, headers={"User-Agent": UA})
+        site["soft_404"] = {"status": r.status, "is_soft_404": r.status == 200, "probe": probe}
+    except Exception as e:
+        site["soft_404"] = {"error": str(e)}
 
     return site
 
@@ -1937,7 +1948,7 @@ async def main():
         pages = read_sitemap(args.sitemap, args.limit)
     elif args.crawl:
         print(f"Crawler nettstedet fra: {args.crawl}")
-        pages = crawl_site(args.crawl, args.limit)
+        pages = await crawl_site(args.crawl, args.limit)
     elif args.excel:
         pages = read_pages(args.excel, args.only)
         if args.limit and args.limit > 0:
