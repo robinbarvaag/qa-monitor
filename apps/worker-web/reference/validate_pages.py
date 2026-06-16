@@ -138,7 +138,13 @@ async def crawl_site(base_url: str, limit: int | None):
     JavaScript (SPA-er). Følger interne lenker (samme origin). Samme form som
     read_sitemap. Uten --limit settes et hardt tak på 100 sider."""
     max_pages = limit if (limit and limit > 0) else 100
-    origin = urlparse(base_url).netloc
+
+    # Behandle www.host og host som samme nettsted (svært vanlig at kanonisk vert
+    # er den ene, men lenkene peker til den andre).
+    def hostkey(netloc: str) -> str:
+        return netloc.lower().removeprefix("www.")
+
+    origin = hostkey(urlparse(base_url).netloc)
     seen: set[str] = set()
     order: list[str] = []
     queue: list[str] = [base_url]
@@ -146,9 +152,11 @@ async def crawl_site(base_url: str, limit: int | None):
     def norm(u: str) -> str:
         u = urldefrag(u)[0]
         p = urlparse(u)
-        if p.path in ("", "/"):
-            return f"{p.scheme}://{p.netloc}"
-        return u[:-1] if u.endswith("/") else u
+        path = p.path or "/"
+        if path != "/" and path.endswith("/"):
+            path = path[:-1]
+        q = f"?{p.query}" if p.query else ""
+        return f"{p.scheme}://{hostkey(p.netloc)}{path}{q}"
 
     async with async_playwright() as pw:
         browser = await pw.chromium.launch()
@@ -167,13 +175,13 @@ async def crawl_site(base_url: str, limit: int | None):
                 )
             except Exception:
                 continue
-            order.append(key)
+            order.append(url)
             for h in hrefs:
                 link = urldefrag(h)[0]
                 p = urlparse(link)
                 if (
                     p.scheme in ("http", "https")
-                    and p.netloc == origin
+                    and hostkey(p.netloc) == origin
                     and norm(link) not in seen
                 ):
                     queue.append(link)
