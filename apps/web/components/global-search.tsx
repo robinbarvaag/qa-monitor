@@ -32,7 +32,17 @@ export function GlobalSearch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResults>(EMPTY);
   const [loading, setLoading] = useState(false);
+  const [isMac, setIsMac] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const reqId = useRef(0);
+
+  // Plattform-bevisst snarvei (⌘ på Mac, Ctrl ellers) – settes etter mount
+  // for å unngå hydrerings-avvik (navigator finnes ikke på server).
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    setIsMac(/mac/i.test(ua) && !/windows/i.test(ua));
+    setMounted(true);
+  }, []);
 
   // Global ⌘K / Ctrl+K
   useEffect(() => {
@@ -83,13 +93,18 @@ export function GlobalSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex h-8 items-center gap-2 rounded-lg border border-input bg-background px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
+        className="inline-flex h-8 items-center gap-2 rounded-lg border border-input bg-background pr-1.5 pl-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
       >
         <Search className="size-4" />
         <span className="hidden sm:inline">Søk…</span>
-        <kbd className="hidden rounded border bg-muted px-1.5 font-mono text-[10px] sm:inline">
-          ⌘K
-        </kbd>
+        <span className="ml-1 hidden items-center gap-0.5 sm:inline-flex" suppressHydrationWarning>
+          <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded border border-border bg-muted px-1 font-sans text-xs font-medium">
+            {mounted && isMac ? "⌘" : "Ctrl"}
+          </kbd>
+          <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded border border-border bg-muted px-1 font-sans text-xs font-medium">
+            K
+          </kbd>
+        </span>
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
