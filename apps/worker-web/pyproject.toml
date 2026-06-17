@@ -9,6 +9,9 @@ dependencies = [
   "pillow>=11.0",
   "psycopg[binary]>=3.2",
   "python-dotenv>=1.0",
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "vercel_blob>=0.4",
 ]
 
 # App, ikke en pakke som skal bygges/installeres.

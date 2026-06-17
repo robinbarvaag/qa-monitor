@@ -296,7 +296,7 @@ function normalizePage(p: RawPage): ReportPage {
     jsDependent: typeof jsDep === "boolean" ? jsDep : null,
     seoFailCount: seo.filter((s) => s.level === "fail").length,
     seoWarnCount: seo.filter((s) => s.level === "warn").length,
-    screenshot: p.shot ? (p.shot.split("/").pop() ?? null) : null,
+    screenshot: p.shot ?? null,
   };
 }
 

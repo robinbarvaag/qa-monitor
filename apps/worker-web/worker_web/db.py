@@ -1,22 +1,20 @@
+import io
 import os
 from pathlib import Path
 
 import psycopg
+import vercel_blob
 from PIL import Image
 from psycopg.types.json import Json
-
-# apps/web/public/shots – samme statiske serving som Fase 1
-PUBLIC_SHOTS = Path(__file__).resolve().parents[2] / "web" / "public" / "shots"
 
 
 def _connect():
     return psycopg.connect(os.environ["DATABASE_URL"])
 
 
-def _save_screenshot(src: Path, slug: str, name: str) -> str:
-    """Downscaler (800px/q60) inn i apps/web/public/shots/<slug>/, returnerer key."""
-    dst_dir = PUBLIC_SHOTS / slug
-    dst_dir.mkdir(parents=True, exist_ok=True)
+def _save_screenshot(src: Path, slug: str, run_id: str, name: str) -> str:
+    """Downscaler (800px/q60) og laster opp til Vercel Blob. Returnerer den
+    offentlige URL-en (lagres direkte i screenshot_key og brukes som <img src>)."""
     im = Image.open(src).convert("RGB")
     w, h = im.size
     if w > 800:
@@ -27,8 +25,16 @@ def _save_screenshot(src: Path, slug: str, name: str) -> str:
     # patologiske uendelig-scroll-sider; vanlige sider beholdes komplette.
     if h > 12000:
         im = im.crop((0, 0, w, 12000))
-    im.save(dst_dir / name, "JPEG", quality=60, optimize=True)
-    return f"{slug}/{name}"
+    buf = io.BytesIO()
+    im.save(buf, "JPEG", quality=60, optimize=True)
+    # Nøkkel inkluderer run_id så hver kjøring får egne, ikke-kolliderende blobs.
+    key = f"{slug}/{run_id}/{name}"
+    res = vercel_blob.put(
+        key,
+        buf.getvalue(),
+        {"contentType": "image/jpeg", "addRandomSuffix": "false"},
+    )
+    return res["url"]
 
 
 def _counts(entry: dict) -> tuple[int, int, int]:
@@ -102,7 +108,7 @@ def _write_results(cur, run_id, project_id: str, slug: str, data: dict) -> dict:
         if entry.get("shot"):
             src = data["_workdir"] / entry["shot"]
             if src.exists():
-                shot_key = _save_screenshot(src, slug, Path(entry["shot"]).name)
+                shot_key = _save_screenshot(src, slug, run_id, Path(entry["shot"]).name)
 
         cur.execute(
             """insert into page (project_id, url) values (%s, %s)

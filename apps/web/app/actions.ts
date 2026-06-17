@@ -4,7 +4,7 @@ import { type RunSummary, runSummarySchema } from "@/lib/analysis-schema";
 import { ANALYSIS_MODEL, analyzePerPage } from "@/lib/analyze";
 import { fetchDependabotAlerts } from "@/lib/github";
 import { type SitemapInfo, inspectSitemap } from "@/lib/sitemap";
-import { spawnWorker } from "@/lib/spawn-worker";
+import { triggerRun } from "@/lib/spawn-worker";
 import {
   type AnnotationStatus,
   type RunOptions,
@@ -14,6 +14,7 @@ import {
   ensureGithubSource,
   ensureProject,
   ensureWebProject,
+  failRun,
   getGithubSource,
   getLatestRunPages,
   getRunStatus,
@@ -42,7 +43,13 @@ export async function startRunAction(
 ): Promise<{ runId: string } | { error: string }> {
   const runId = await enqueueRun(slug, opts);
   if (!runId) return { error: "Fant ingen valideringskilde for prosjektet." };
-  spawnWorker(runId);
+  try {
+    await triggerRun(runId);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Klarte ikke å starte workeren.";
+    await failRun(runId, msg);
+    return { error: msg };
+  }
   return { runId };
 }
 

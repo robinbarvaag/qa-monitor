@@ -208,6 +208,14 @@ export async function enqueueRun(slug: string, opts?: RunOptions): Promise<strin
   return inserted[0]?.id ?? null;
 }
 
+/** Markerer en kjøring som feilet (f.eks. hvis worker-triggeren ikke nådde fram). */
+export async function failRun(runId: string, message: string): Promise<void> {
+  await db
+    .update(run)
+    .set({ status: "error", finishedAt: new Date(), error: message.slice(0, 1000) })
+    .where(eq(run.id, runId));
+}
+
 export interface RunStatus {
   status: RunStatusValue;
   progress: { done: number; total: number } | null;

@@ -49,9 +49,12 @@ export async function loadProject(slug: string): Promise<Project | null> {
     pages: latest.pages.map(toRawPage),
     sites: latest.sites,
   });
-  // Skjermbilder serveres fra apps/web/public/shots/<slug>/<fil>
+  // Nye kjøringer lagrer full Vercel Blob-URL (https://…) → bruk som den er.
+  // Gamle kjøringer har relativ nøkkel <slug>/<fil> → serveres fra public/shots.
   for (const page of report.pages) {
-    if (page.screenshot) page.screenshot = `/shots/${slug}/${page.screenshot}`;
+    if (page.screenshot && !/^https?:\/\//.test(page.screenshot)) {
+      page.screenshot = `/shots/${page.screenshot}`;
+    }
   }
   return { slug, name: latest.name, report };
 }
