@@ -15,9 +15,8 @@ RUN pip install --no-cache-dir \
       "psycopg[binary]>=3.2" \
       "python-dotenv>=1.0"
 
-# Kildekode
-COPY worker_web ./worker_web
-COPY reference ./reference
+# Kildekode (hele tjeneste-mappa; .dockerignore luker bort .venv, cache, osv.)
+COPY . .
 
 ENV PYTHONUTF8=1 \
     PYTHONUNBUFFERED=1
