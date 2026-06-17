@@ -42,6 +42,18 @@ function locs(xml: string): string[] {
   return out;
 }
 
+// Filendelser som ikke er nettsider – noen sitemaps lister bilder/asset-filer.
+const ASSET_EXT =
+  /\.(jpg|jpeg|png|gif|webp|avif|svg|ico|bmp|tiff|heic|pdf|docx?|xlsx?|pptx?|zip|rar|7z|gz|mp4|webm|mov|avi|mkv|mp3|wav|ogg|m4a|css|m?js|map|woff2?|ttf|eot)$/i;
+
+function isAsset(url: string): boolean {
+  try {
+    return ASSET_EXT.test(new URL(url).pathname);
+  } catch {
+    return false;
+  }
+}
+
 function estimate(count: number): number {
   return Math.max(1, Math.ceil((count * SECONDS_PER_PAGE) / 60));
 }
@@ -68,6 +80,7 @@ export async function inspectSitemap(sitemapUrl: string): Promise<SitemapInfo> {
     urls = locs(xml);
   }
 
-  const count = new Set(urls).size;
+  // Dropp asset-URL-er (bilder/PDF/…) – vi teller og validerer kun sider.
+  const count = new Set(urls.filter((u) => !isAsset(u))).size;
   return { hasSitemap: true, count, origin, estimateMinutes: estimate(count) };
 }

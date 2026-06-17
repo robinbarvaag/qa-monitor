@@ -15,11 +15,7 @@ import path from "node:path";
 export function spawnWorker(runId: string): void {
   const workerDir = path.resolve(process.cwd(), "..", "worker-web");
   const isWin = process.platform === "win32";
-  const venvPython = path.join(
-    workerDir,
-    ".venv",
-    isWin ? "Scripts/python.exe" : "bin/python",
-  );
+  const venvPython = path.join(workerDir, ".venv", isWin ? "Scripts/python.exe" : "bin/python");
   const useVenv = existsSync(venvPython);
 
   const home = process.env.USERPROFILE ?? process.env.HOME ?? "";

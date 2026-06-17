@@ -120,13 +120,38 @@ def _fetch_sitemap_locs(url: str, depth: int = 0, seen: set | None = None) -> li
     return locs
 
 
+# Filendelser som ikke er nettsider (bilder, media, dokumenter, asset-filer).
+# Noen sitemaps lister bilde-URL-er (eller <image:loc>) som vi ikke skal validere.
+_ASSET_EXT = (
+    ".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".svg", ".ico", ".bmp", ".tiff", ".heic",
+    ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".zip", ".rar", ".7z", ".gz",
+    ".mp4", ".webm", ".mov", ".avi", ".mkv", ".mp3", ".wav", ".ogg", ".m4a",
+    ".css", ".js", ".mjs", ".map", ".woff", ".woff2", ".ttf", ".eot",
+)
+
+
+def _is_asset(u: str) -> bool:
+    return urlparse(u).path.lower().endswith(_ASSET_EXT)
+
+
 def read_sitemap(sitemap_url: str, limit: int | None):
     """Henter URL-er fra en sitemap.xml. Returnerer samme form som read_pages:
     (radnr, kolonne, url, extra). Hver URL er sin egen side (ingen gammel/ny-par)."""
     locs = _fetch_sitemap_locs(sitemap_url)
-    # dedupe, behold rekkefølge
+    # dedupe (behold rekkefølge) og dropp asset-URL-er (bilder o.l. er ikke sider)
     seen: set[str] = set()
-    urls = [u for u in locs if not (u in seen or seen.add(u))]
+    urls = []
+    assets = 0
+    for u in locs:
+        if u in seen:
+            continue
+        seen.add(u)
+        if _is_asset(u):
+            assets += 1
+            continue
+        urls.append(u)
+    if assets:
+        print(f"Hoppet over {assets} ikke-side-URL-er (bilder/asset-filer) i sitemap.")
     if limit and limit > 0:
         urls = urls[:limit]
     return [(i, "ny", u, {}) for i, u in enumerate(urls, start=1)]
