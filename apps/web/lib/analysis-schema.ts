@@ -23,6 +23,12 @@ export const pageAnalysisSchema = z.object({
   severity: z.enum(SEVERITY).describe("Sidens samlede alvorlighet"),
   assessment: z.string().describe("1–3 setningers vurdering av siden"),
   suggestions: z.array(z.string()).describe("Konkrete fiks-forslag, viktigst først (maks 5)"),
+  visual: z
+    .string()
+    .describe(
+      "Vurdering av visuelt design ut fra skjermbildet: avstander/whitespace, justering, " +
+        "konsistens, visuelt hierarki og helhetlig kvalitet. Tom streng hvis ingen skjermbilde.",
+    ),
 });
 
 export type RunSummary = z.infer<typeof runSummarySchema>;

@@ -111,12 +111,16 @@ export const SUMMARY_SYSTEM =
   "treg last). Vær konkret og handlingsrettet. Svar på norsk (bokmål). Ikke finn på funn som ikke står i dataene.";
 
 export const PAGE_SYSTEM =
-  "Du er en norsk QA-ekspert på web-tilgjengelighet (WCAG/axe), SEO, ytelse og tastaturnavigasjon. " +
-  "Du vurderer én enkelt side ut fra deterministiske valideringsresultater. " +
+  "Du er en norsk QA- og design-ekspert på web-tilgjengelighet (WCAG/axe), SEO, ytelse, " +
+  "tastaturnavigasjon og visuelt design. Du vurderer én enkelt side ut fra deterministiske " +
+  "valideringsresultater, og — hvis et skjermbilde er vedlagt — også det visuelle uttrykket. " +
   "`perf` har lastetid (ms), sidevekt/bilde-vekt (KB), DOM-noder og oversized bilder — kommenter " +
   "ytelse når det er et reelt problem (tung side, store bilder, treg last). " +
-  "Gi en kort vurdering og konkrete, prioriterte fiks-forslag. Svar på norsk (bokmål). " +
-  "Ikke finn på funn som ikke står i dataene; hvis siden er ren, si det.";
+  "Gi en kort vurdering (`assessment`) og konkrete, prioriterte fiks-forslag (`suggestions`). " +
+  "I `visual`: vurder skjermbildet på avstander/whitespace, justering, konsistens (typografi, " +
+  "farger, knapper), visuelt hierarki og helhetlig håndverk — vær konkret og ærlig om svakheter. " +
+  "Hvis det ikke er noe skjermbilde, sett `visual` til tom streng. " +
+  "Svar på norsk (bokmål). Ikke finn på funn som ikke står i dataene; hvis siden er ren, si det.";
 
 export function summaryPrompt(name: string, pages: RunPageDetail[]): string {
   const digests = pages.map(digest);
@@ -158,32 +162,28 @@ export function findingsPrompt(findings: FindingRow[]): string {
   return `${findings.length} Dependabot-funn.\n\nFunn (JSON):\n${JSON.stringify(digest)}`;
 }
 
-/* ---------- enkel samtidighetsbegrensning ---------- */
-
-async function pool<I, O>(items: I[], limit: number, fn: (item: I) => Promise<O>): Promise<O[]> {
-  const out: O[] = new Array(items.length);
-  let next = 0;
-  async function worker() {
-    while (next < items.length) {
-      const i = next++;
-      out[i] = await fn(items[i] as I);
-    }
-  }
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
-  return out;
-}
-
-/** Genererer AI-vurdering per side (ikke streamet). */
-export async function analyzePerPage(
-  pages: RunPageDetail[],
-): Promise<{ pageId: string; content: PageAnalysisContent }[]> {
-  return pool(pages, 5, async (p) => {
-    const { object } = await generateObject({
-      model: anthropic(ANALYSIS_MODEL),
-      schema: pageAnalysisSchema,
-      system: PAGE_SYSTEM,
-      prompt: pagePrompt(p),
-    });
-    return { pageId: p.pageId, content: object as PageAnalysisContent };
+/** Genererer AI-vurdering for én enkelt side (on-demand, ikke streamet). Hvis et
+ *  skjermbilde er gitt, vurderer modellen også det visuelle (avstander/konsistens). */
+export async function analyzeOnePage(
+  p: RunPageDetail,
+  screenshot?: Uint8Array,
+): Promise<PageAnalysisContent> {
+  const { object } = await generateObject({
+    model: anthropic(ANALYSIS_MODEL),
+    schema: pageAnalysisSchema,
+    system: PAGE_SYSTEM,
+    messages: [
+      {
+        role: "user",
+        content: screenshot
+          ? [
+              { type: "text", text: pagePrompt(p) },
+              { type: "text", text: "Skjermbilde av siden:" },
+              { type: "image", image: screenshot },
+            ]
+          : [{ type: "text", text: pagePrompt(p) }],
+      },
+    ],
   });
+  return object as PageAnalysisContent;
 }

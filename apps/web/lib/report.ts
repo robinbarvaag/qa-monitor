@@ -38,6 +38,13 @@ interface RawKeyboard {
   aria_hidden_count?: number;
   unreachable_count?: number;
 }
+interface RawJs {
+  error_ui?: string | null;
+  console_errors?: string[];
+  page_errors?: string[];
+  console_error_count?: number;
+  page_error_count?: number;
+}
 interface RawPage {
   url: string;
   status: number | null;
@@ -49,6 +56,7 @@ interface RawPage {
   seo?: Array<{ level: "fail" | "warn" | "ok"; key: string; msg: string }>;
   keyboard?: RawKeyboard | null;
   geo?: { signals?: Record<string, unknown>; tips?: unknown[] } | null;
+  js?: RawJs | null;
   shot?: string | null;
 }
 interface RawSite {
@@ -141,6 +149,16 @@ export interface PageMeta {
   imagesMissingAlt: number;
   wordCount: number;
 }
+export interface PageJs {
+  /** Tekst når en framework-feil-UI (f.eks. Blazor) faktisk vises, ellers null. */
+  errorUi: string | null;
+  consoleErrors: string[];
+  pageErrors: string[];
+  consoleErrorCount: number;
+  pageErrorCount: number;
+  /** Høy-signal: synlig feil-UI eller uhåndtert unntak. */
+  hasProblem: boolean;
+}
 export interface ReportPage {
   url: string;
   path: string;
@@ -154,6 +172,7 @@ export interface ReportPage {
   keyboard: PageKeyboard | null;
   perf: PagePerf | null;
   social: PageSocial;
+  js: PageJs | null;
   jsDependent: boolean | null;
   seoFailCount: number;
   seoWarnCount: number;
@@ -187,6 +206,7 @@ export interface Report {
     brokenLinks: number;
     loadErrors: number;
     seoFails: number;
+    jsErrors: number;
   };
 }
 
@@ -259,6 +279,22 @@ function normalizeKeyboard(k: RawKeyboard | null | undefined): PageKeyboard | nu
   };
 }
 
+function normalizeJs(j: RawJs | null | undefined): PageJs | null {
+  if (!j) return null;
+  const consoleErrors = Array.isArray(j.console_errors) ? j.console_errors : [];
+  const pageErrors = Array.isArray(j.page_errors) ? j.page_errors : [];
+  const errorUi = typeof j.error_ui === "string" && j.error_ui ? j.error_ui : null;
+  const pageErrorCount = num(j.page_error_count, pageErrors.length);
+  return {
+    errorUi,
+    consoleErrors,
+    pageErrors,
+    consoleErrorCount: num(j.console_error_count, consoleErrors.length),
+    pageErrorCount,
+    hasProblem: errorUi !== null || pageErrorCount > 0,
+  };
+}
+
 function normalizePage(p: RawPage): ReportPage {
   let pathname = p.url;
   try {
@@ -293,6 +329,7 @@ function normalizePage(p: RawPage): ReportPage {
     keyboard: normalizeKeyboard(p.keyboard),
     perf: normalizePerf(p.meta?.perf),
     social: normalizeSocial(p.meta),
+    js: normalizeJs(p.js),
     jsDependent: typeof jsDep === "boolean" ? jsDep : null,
     seoFailCount: seo.filter((s) => s.level === "fail").length,
     seoWarnCount: seo.filter((s) => s.level === "warn").length,
@@ -330,6 +367,7 @@ export function normalize(input: RawReport | Record<string, unknown>): Report {
       brokenLinks: pages.reduce((n, p) => n + p.links.broken.length, 0),
       loadErrors: pages.filter((p) => p.loadError || !p.ok).length,
       seoFails: pages.reduce((n, p) => n + p.seoFailCount, 0),
+      jsErrors: pages.filter((p) => p.js?.hasProblem).length,
     },
   };
 }

@@ -1,6 +1,17 @@
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { db } from "./client";
-import { analysis, annotation, finding, page, pageResult, project, run, source } from "./schema";
+import {
+  analysis,
+  annotation,
+  checklistItem,
+  finding,
+  page,
+  pageResult,
+  project,
+  projectMember,
+  run,
+  source,
+} from "./schema";
 
 /**
  * Datatilgang for oppfølging (`annotation`). Holder drizzle-spørringene i
@@ -68,6 +79,7 @@ export interface RawPageRow {
   links: unknown;
   keyboard: unknown;
   geo: unknown;
+  js: unknown;
   screenshotKey: string | null;
 }
 
@@ -102,6 +114,7 @@ export async function loadLatestRun(slug: string): Promise<LatestRun | null> {
       links: pageResult.links,
       keyboard: pageResult.keyboard,
       geo: pageResult.geo,
+      js: pageResult.js,
       screenshotKey: pageResult.screenshotKey,
     })
     .from(pageResult)
@@ -167,6 +180,64 @@ export async function ensureWebProject(
   }
 }
 
+/** Ett gammel/ny-URL-par fra et migrerings-regneark. */
+export interface MigrationPairInput {
+  old: string;
+  new: string;
+  pairKey: string;
+  extra: Record<string, string>;
+}
+
+/** Oppretter/oppdaterer et migrerings-prosjekt (mode=migration med par i config). */
+export async function ensureMigrationProject(
+  slug: string,
+  name: string,
+  pairs: MigrationPairInput[],
+): Promise<void> {
+  const projectId = await ensureProject(slug, name);
+  const config = { mode: "migration", pairs, screenshots: true };
+  const sourceName = `${pairs.length} par (migrering)`;
+  const existing = await db
+    .select({ id: source.id })
+    .from(source)
+    .where(and(eq(source.projectId, projectId), eq(source.type, "web_validation")))
+    .limit(1);
+  if (existing[0]) {
+    await db.update(source).set({ config, name: sourceName }).where(eq(source.id, existing[0].id));
+  } else {
+    await db.insert(source).values({ projectId, type: "web_validation", name: sourceName, config });
+  }
+}
+
+/** Sletter et prosjekt og alt under det (cascade på source/run/page/… i schema). */
+export async function deleteProject(slug: string): Promise<void> {
+  await db.delete(project).where(eq(project.slug, slug));
+}
+
+/** Oppdaterer navn og/eller web_validation-kildens url + modus-preferanse. */
+export async function updateProjectSettings(
+  slug: string,
+  data: { name?: string; url?: string; modePref?: string },
+): Promise<void> {
+  if (data.name !== undefined) {
+    await db.update(project).set({ name: data.name }).where(eq(project.slug, slug));
+  }
+  if (data.url === undefined && data.modePref === undefined) return;
+
+  const rows = await db
+    .select({ id: source.id, config: source.config })
+    .from(source)
+    .innerJoin(project, eq(project.id, source.projectId))
+    .where(and(eq(project.slug, slug), eq(source.type, "web_validation")))
+    .limit(1);
+  const src = rows[0];
+  if (!src) return;
+  const config = { ...((src.config ?? {}) as Record<string, unknown>) };
+  if (data.url !== undefined) config.url = data.url;
+  if (data.modePref !== undefined) config.modePref = data.modePref;
+  await db.update(source).set({ config }).where(eq(source.id, src.id));
+}
+
 /** Henter web_validation-kildens config (bl.a. sitemap-url) for et prosjekt. */
 export async function getWebValidationConfig(
   slug: string,
@@ -222,6 +293,26 @@ export interface RunStatus {
   error: string | null;
 }
 
+/** Siste ikke-fullførte (queued/running) web_validation-kjøring, om noen. Lar
+ *  UI-et gjenoppta progresjons-polling etter en refresh. */
+export async function getActiveRun(slug: string): Promise<string | null> {
+  const rows = await db
+    .select({ id: run.id })
+    .from(run)
+    .innerJoin(source, eq(source.id, run.sourceId))
+    .innerJoin(project, eq(project.id, source.projectId))
+    .where(
+      and(
+        eq(project.slug, slug),
+        eq(source.type, "web_validation"),
+        or(eq(run.status, "queued"), eq(run.status, "running")),
+      ),
+    )
+    .orderBy(desc(run.startedAt))
+    .limit(1);
+  return rows[0]?.id ?? null;
+}
+
 export async function getRunStatus(runId: string): Promise<RunStatus | null> {
   const rows = await db
     .select({ status: run.status, data: run.data, error: run.error })
@@ -232,6 +323,160 @@ export async function getRunStatus(runId: string): Promise<RunStatus | null> {
   if (!r) return null;
   const data = (r.data ?? {}) as { progress?: { done: number; total: number } };
   return { status: r.status, progress: data.progress ?? null, error: r.error };
+}
+
+/* ---------- historikk / trend over tid ---------- */
+
+/** Aggregatene én kjøring lagrer i `run.totals`. */
+export interface RunTotals {
+  pages: number;
+  a11yViolations: number;
+  brokenLinks: number;
+  seoFails: number;
+  loadErrors: number;
+}
+
+/** Ett punkt i trend-grafen: én fullført kjøring med tidspunkt + totaler. */
+export interface RunHistoryPoint {
+  finishedAt: string;
+  totals: RunTotals;
+}
+
+/** Denormaliserte tellere for én side i én kjøring (for per-side delta). */
+export interface PageCounts {
+  a11y: number;
+  broken: number;
+  seo: number;
+}
+
+function normalizeTotals(raw: Record<string, number> | null): RunTotals {
+  const t = raw ?? {};
+  return {
+    pages: t.pages ?? 0,
+    a11yViolations: t.a11yViolations ?? 0,
+    brokenLinks: t.brokenLinks ?? 0,
+    seoFails: t.seoFails ?? 0,
+    loadErrors: t.loadErrors ?? 0,
+  };
+}
+
+/** Siste N fullførte web_validation-kjøringer, kronologisk stigende (for trend). */
+export async function getRunHistory(slug: string, limit = 12): Promise<RunHistoryPoint[]> {
+  const rows = await db
+    .select({ finishedAt: run.finishedAt, totals: run.totals })
+    .from(run)
+    .innerJoin(source, eq(source.id, run.sourceId))
+    .innerJoin(project, eq(project.id, source.projectId))
+    .where(and(eq(project.slug, slug), eq(source.type, "web_validation"), eq(run.status, "done")))
+    .orderBy(desc(run.finishedAt))
+    .limit(limit);
+  // hentet nyeste→eldste for å få de N siste; snu til kronologisk stigende for grafen
+  return rows.reverse().map((r) => ({
+    finishedAt: (r.finishedAt ?? new Date(0)).toISOString(),
+    totals: normalizeTotals(r.totals),
+  }));
+}
+
+/** Tellere per side fra nest siste fullførte kjøring (url → counts), eller null. */
+export async function getPreviousRunCounts(
+  slug: string,
+): Promise<Record<string, PageCounts> | null> {
+  const runs = await db
+    .select({ id: run.id })
+    .from(run)
+    .innerJoin(source, eq(source.id, run.sourceId))
+    .innerJoin(project, eq(project.id, source.projectId))
+    .where(and(eq(project.slug, slug), eq(source.type, "web_validation"), eq(run.status, "done")))
+    .orderBy(desc(run.finishedAt))
+    .limit(2);
+  const prevId = runs[1]?.id;
+  if (!prevId) return null;
+
+  const rows = await db
+    .select({
+      url: page.url,
+      a11y: pageResult.a11yCount,
+      broken: pageResult.brokenCount,
+      seo: pageResult.seoFailCount,
+    })
+    .from(pageResult)
+    .innerJoin(page, eq(page.id, pageResult.pageId))
+    .where(eq(pageResult.runId, prevId));
+
+  const map: Record<string, PageCounts> = {};
+  for (const r of rows) map[r.url] = { a11y: r.a11y, broken: r.broken, seo: r.seo };
+  return map;
+}
+
+/* ---------- migrering (gammel vs ny) ---------- */
+
+/** Modus for prosjektets web_validation-kilde ("sitemap" | "crawl" | "migration"). */
+export async function getProjectMode(slug: string): Promise<string | null> {
+  const config = await getWebValidationConfig(slug);
+  const mode = config?.mode;
+  return typeof mode === "string" ? mode : null;
+}
+
+/** Én side (gammel eller ny) i et migrerings-par. */
+export interface MigrationSide {
+  url: string;
+  httpStatus: number | null;
+  a11y: number;
+  broken: number;
+  seo: number;
+  screenshotKey: string | null;
+}
+
+/** Et gammel↔ny-par fra siste migrerings-kjøring. */
+export interface MigrationPair {
+  pairKey: string;
+  old: MigrationSide | null;
+  new: MigrationSide | null;
+}
+
+/** Par fra siste fullførte migrerings-kjøring, gruppert på pairKey. */
+export async function getMigrationPairs(slug: string): Promise<MigrationPair[]> {
+  const runId = await latestDoneRunId(slug);
+  if (!runId) return [];
+
+  const rows = await db
+    .select({
+      pairKey: page.pairKey,
+      label: page.label,
+      url: page.url,
+      httpStatus: pageResult.httpStatus,
+      a11y: pageResult.a11yCount,
+      broken: pageResult.brokenCount,
+      seo: pageResult.seoFailCount,
+      screenshotKey: pageResult.screenshotKey,
+    })
+    .from(pageResult)
+    .innerJoin(page, eq(page.id, pageResult.pageId))
+    .where(eq(pageResult.runId, runId));
+
+  const byKey = new Map<string, MigrationPair>();
+  for (const r of rows) {
+    if (!r.pairKey) continue;
+    let pair = byKey.get(r.pairKey);
+    if (!pair) {
+      pair = { pairKey: r.pairKey, old: null, new: null };
+      byKey.set(r.pairKey, pair);
+    }
+    const side: MigrationSide = {
+      url: r.url,
+      httpStatus: r.httpStatus,
+      a11y: r.a11y,
+      broken: r.broken,
+      seo: r.seo,
+      screenshotKey: r.screenshotKey,
+    };
+    if (r.label === "gammel") pair.old = side;
+    else pair.new = side;
+  }
+
+  return [...byKey.values()].sort((a, b) =>
+    (a.old?.url ?? a.new?.url ?? "").localeCompare(b.old?.url ?? b.new?.url ?? ""),
+  );
 }
 
 /* ---------- AI-analyse (Fase 4) ---------- */
@@ -258,6 +503,8 @@ export interface PageAnalysisContent {
   severity: AnalysisSeverity;
   assessment: string;
   suggestions: string[];
+  /** Visuell vurdering fra skjermbildet (avstander/konsistens); tom hvis ikke vurdert. */
+  visual?: string;
 }
 
 /** Alt av AI-analyse for siste kjøring, klar for UI. */
@@ -279,6 +526,7 @@ export interface RunPageDetail {
   seo: unknown;
   links: unknown;
   keyboard: unknown;
+  screenshotKey: string | null;
 }
 
 export interface LatestRunPages {
@@ -314,6 +562,7 @@ export async function getLatestRunPages(slug: string): Promise<LatestRunPages | 
       seo: pageResult.seo,
       links: pageResult.links,
       keyboard: pageResult.keyboard,
+      screenshotKey: pageResult.screenshotKey,
     })
     .from(pageResult)
     .innerJoin(page, eq(page.id, pageResult.pageId))
@@ -321,14 +570,13 @@ export async function getLatestRunPages(slug: string): Promise<LatestRunPages | 
   return { runId, name: slug, pages: rows };
 }
 
-/** Lagrer en frisk analyse for kjøringen (sletter forrige først). */
-export async function saveRunAnalyses(
+/** Lagrer (kun) helhets-oppsummeringen for kjøringen; rører ikke per-side. */
+export async function saveRunSummary(
   runId: string,
   model: string,
   summary: RunSummaryContent,
-  pages: { pageId: string; content: PageAnalysisContent }[],
 ): Promise<void> {
-  await db.delete(analysis).where(eq(analysis.runId, runId));
+  await db.delete(analysis).where(and(eq(analysis.runId, runId), isNull(analysis.pageId)));
   await db.insert(analysis).values({
     runId,
     pageId: null,
@@ -336,17 +584,25 @@ export async function saveRunAnalyses(
     model,
     content: summary as unknown as Record<string, unknown>,
   });
-  if (pages.length > 0) {
-    await db.insert(analysis).values(
-      pages.map((p) => ({
-        runId,
-        pageId: p.pageId,
-        kind: "page" as const,
-        model,
-        content: p.content as unknown as Record<string, unknown>,
-      })),
-    );
-  }
+}
+
+/** Lagrer (on-demand) AI-vurderingen for én side; erstatter evt. forrige. */
+export async function savePageAnalysis(
+  runId: string,
+  pageId: string,
+  model: string,
+  content: PageAnalysisContent,
+): Promise<void> {
+  await db
+    .delete(analysis)
+    .where(and(eq(analysis.runId, runId), eq(analysis.pageId, pageId), eq(analysis.kind, "page")));
+  await db.insert(analysis).values({
+    runId,
+    pageId,
+    kind: "page",
+    model,
+    content: content as unknown as Record<string, unknown>,
+  });
 }
 
 /** Henter AI-analysen for siste kjøring, keyet på side-URL. */
@@ -561,6 +817,151 @@ export async function getFindingsAnalysis(slug: string): Promise<FindingsAnalysi
     | undefined;
   if (!data?.analysis || !data.model || !data.analyzedAt) return null;
   return { model: data.model, analyzedAt: data.analyzedAt, summary: data.analysis };
+}
+
+/* ---------- sjekklister per fagområde ---------- */
+
+export type ChecklistDiscipline =
+  | "a11y"
+  | "seo"
+  | "content"
+  | "design"
+  | "performance"
+  | "security";
+export type ChecklistSource = "curated" | "auto" | "custom";
+export type ChecklistStatus = "open" | "in_progress" | "done" | "na";
+
+/** Lagret state for én sjekkliste-post (keyet på `key`). */
+export interface ChecklistStateEntry {
+  source: ChecklistSource;
+  discipline: ChecklistDiscipline;
+  title: string;
+  status: ChecklistStatus;
+  assignees: string[]; // project_member-id-er
+  note: string | null;
+}
+export type ChecklistState = Record<string, ChecklistStateEntry>;
+
+/** All lagret sjekkliste-state for et prosjekt, keyet på post-`key`. */
+export async function getChecklistState(projectId: string): Promise<ChecklistState> {
+  const rows = await db
+    .select({
+      key: checklistItem.key,
+      source: checklistItem.source,
+      discipline: checklistItem.discipline,
+      title: checklistItem.title,
+      status: checklistItem.status,
+      assignees: checklistItem.assignees,
+      note: checklistItem.note,
+    })
+    .from(checklistItem)
+    .where(eq(checklistItem.projectId, projectId));
+  const map: ChecklistState = {};
+  for (const r of rows) {
+    map[r.key] = {
+      source: r.source,
+      discipline: r.discipline,
+      title: r.title,
+      status: r.status,
+      assignees: r.assignees ?? [],
+      note: r.note,
+    };
+  }
+  return map;
+}
+
+/** Upsert state for en sjekkliste-post (kurert/auto/custom). */
+export async function setChecklistItem(
+  projectId: string,
+  key: string,
+  data: {
+    discipline: ChecklistDiscipline;
+    source: ChecklistSource;
+    title: string;
+    status: ChecklistStatus;
+    assignees: string[];
+    note: string | null;
+  },
+): Promise<void> {
+  await db
+    .insert(checklistItem)
+    .values({ projectId, key, ...data })
+    .onConflictDoUpdate({
+      target: [checklistItem.projectId, checklistItem.key],
+      set: {
+        status: data.status,
+        assignees: data.assignees,
+        note: data.note,
+        title: data.title,
+        updatedAt: new Date(),
+      },
+    });
+}
+
+/** Oppretter en egen (custom) sjekkliste-post; returnerer den nye `key`-en. */
+export async function addCustomChecklistItem(
+  projectId: string,
+  discipline: ChecklistDiscipline,
+  title: string,
+): Promise<string> {
+  const key = `custom:${crypto.randomUUID()}`;
+  await db.insert(checklistItem).values({
+    projectId,
+    key,
+    discipline,
+    source: "custom",
+    title,
+    status: "open",
+  });
+  return key;
+}
+
+/** Fjerner en sjekkliste-post (egen post) eller nullstiller lagret state. */
+export async function deleteChecklistItem(projectId: string, key: string): Promise<void> {
+  await db
+    .delete(checklistItem)
+    .where(and(eq(checklistItem.projectId, projectId), eq(checklistItem.key, key)));
+}
+
+/* ---------- prosjekt-deltakere ---------- */
+
+export type MemberRole = "sales" | "developer" | "designer" | "pm" | "other";
+
+export interface ProjectMember {
+  id: string;
+  name: string;
+  role: MemberRole;
+}
+
+/** Deltakerne på et prosjekt (brukes som «ansvarlig»-valg i sjekklistene). */
+export async function listProjectMembers(projectId: string): Promise<ProjectMember[]> {
+  return db
+    .select({ id: projectMember.id, name: projectMember.name, role: projectMember.role })
+    .from(projectMember)
+    .where(eq(projectMember.projectId, projectId))
+    .orderBy(projectMember.name);
+}
+
+/** Legger til en deltaker; returnerer den nye raden. */
+export async function addProjectMember(
+  projectId: string,
+  name: string,
+  role: MemberRole,
+): Promise<ProjectMember> {
+  const rows = await db
+    .insert(projectMember)
+    .values({ projectId, name, role })
+    .returning({ id: projectMember.id, name: projectMember.name, role: projectMember.role });
+  const row = rows[0];
+  if (!row) throw new Error("Kunne ikke opprette deltaker.");
+  return row;
+}
+
+/** Fjerner en deltaker fra prosjektet. */
+export async function deleteProjectMember(projectId: string, memberId: string): Promise<void> {
+  await db
+    .delete(projectMember)
+    .where(and(eq(projectMember.projectId, projectId), eq(projectMember.id, memberId)));
 }
 
 /* ---------- globalt søk (⌘K) ---------- */

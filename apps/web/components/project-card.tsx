@@ -1,22 +1,27 @@
 import type { ProjectSummary } from "@/lib/projects";
+import { type ScoreKey, scoreReport, scoreTone } from "@/lib/score";
 import { Badge } from "@qa/ui/badge";
 import { Card } from "@qa/ui/card";
 import { Globe } from "lucide-react";
 import Link from "next/link";
 
+const TONE_TEXT: Record<"good" | "warn" | "bad", string> = {
+  good: "text-emerald-500",
+  warn: "text-amber-500",
+  bad: "text-destructive",
+};
+const SHORT: Record<ScoreKey, string> = {
+  a11y: "A11y",
+  performance: "Ytelse",
+  seo: "SEO",
+  best: "Praksis",
+};
+
 export function ProjectCard({ project }: { project: ProjectSummary }) {
   const report = project.report;
   const t = report?.totals;
-  const h = t && t.pages > 0 ? Math.round(((t.pages - t.pagesWithA11y) / t.pages) * 100) : null;
-  const tone =
-    h === null
-      ? "text-muted-foreground"
-      : h >= 80
-        ? "text-emerald-500"
-        : h >= 50
-          ? "text-amber-500"
-          : "text-destructive";
-  const issues = t ? t.a11yViolations + t.brokenLinks + t.loadErrors : 0;
+  const score = report ? scoreReport(report) : null;
+  const issues = t ? t.a11yViolations + t.brokenLinks + t.loadErrors + t.jsErrors : 0;
 
   return (
     <Link href={`/p/${project.slug}`} className="group block">
@@ -31,27 +36,36 @@ export function ProjectCard({ project }: { project: ProjectSummary }) {
               <div className="truncate font-mono text-xs text-muted-foreground">{project.slug}</div>
             </div>
           </div>
-          <div className={`shrink-0 font-heading text-lg font-bold tabular-nums ${tone}`}>
-            {h === null ? "–" : `${h}%`}
+          <div
+            className={`shrink-0 font-heading text-2xl font-bold tabular-nums ${
+              score ? TONE_TEXT[scoreTone(score.overall)] : "text-muted-foreground"
+            }`}
+          >
+            {score ? score.overall : "–"}
           </div>
         </div>
 
-        {t ? (
+        {score && t ? (
           <>
-            <div className="flex flex-wrap gap-1.5 px-(--card-spacing)">
-              <Badge variant="outline">{t.pages} sider</Badge>
-              {t.a11yViolations > 0 ? (
-                <Badge variant="destructive">{t.a11yViolations} a11y</Badge>
-              ) : (
-                <Badge variant="secondary">0 a11y</Badge>
-              )}
-              {t.brokenLinks > 0 && <Badge variant="destructive">{t.brokenLinks} brutt</Badge>}
-              {t.seoFails > 0 && <Badge variant="secondary">{t.seoFails} SEO</Badge>}
+            <div className="grid grid-cols-4 gap-1 px-(--card-spacing)">
+              {score.categories.map((c) => (
+                <div key={c.key} className="text-center">
+                  <div
+                    className={`font-heading text-sm font-bold tabular-nums ${TONE_TEXT[scoreTone(c.score)]}`}
+                  >
+                    {c.score}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">{SHORT[c.key]}</div>
+                </div>
+              ))}
             </div>
-            <div className="px-(--card-spacing) text-xs text-muted-foreground">
-              {issues === 0 ? "Ingen problemer 🎉" : `${issues} problemer totalt`}
-              {report?.generated &&
-                ` · kjørt ${new Date(report.generated).toLocaleDateString("nb-NO")}`}
+            <div className="flex items-center gap-1.5 px-(--card-spacing) text-xs text-muted-foreground">
+              <Badge variant="outline">{t.pages} sider</Badge>
+              <span>
+                {issues === 0 ? "Ingen problemer 🎉" : `${issues} problemer`}
+                {report?.generated &&
+                  ` · ${new Date(report.generated).toLocaleDateString("nb-NO")}`}
+              </span>
             </div>
           </>
         ) : (

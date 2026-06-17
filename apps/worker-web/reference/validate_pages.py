@@ -192,6 +192,8 @@ async def crawl_site(base_url: str, limit: int | None):
             if key in seen:
                 continue
             seen.add(key)
+            if _is_asset(url):  # bilder/PDF/asset-filer er ikke sider
+                continue
             try:
                 await page.goto(url, wait_until="load", timeout=30000)
                 await page.wait_for_timeout(800)  # la hydrering legge til lenker
@@ -207,6 +209,7 @@ async def crawl_site(base_url: str, limit: int | None):
                 if (
                     p.scheme in ("http", "https")
                     and hostkey(p.netloc) == origin
+                    and not _is_asset(link)
                     and norm(link) not in seen
                 ):
                     queue.append(link)
@@ -612,9 +615,35 @@ async def capture_shot(page, path):
     try:
         await page.evaluate(
             """() => {
-                for (const s of ['#CybotCookiebotDialog','#CybotCookiebotDialogBodyUnderlay','#CookiebotWidget'])
-                    document.querySelectorAll(s).forEach(e => e.remove());
+                const sel = [
+                    // Cookiebot
+                    '#CybotCookiebotDialog','#CybotCookiebotDialogBodyUnderlay','#CookiebotWidget',
+                    // HubSpot
+                    '#hs-eu-cookie-confirmation','#hs-banner-parent',
+                    // OneTrust
+                    '#onetrust-banner-sdk','#onetrust-consent-sdk','.onetrust-pc-dark-filter','#ot-sdk-container',
+                    // Cookie Information
+                    '#coi-banner-wrapper','#coiOverlay','.coi-banner__wrapper',
+                    // Usercentrics
+                    '#usercentrics-root','#usercentrics-cmp-ui',
+                    // Civic Cookie Control
+                    '#ccc','#ccc-overlay','#ccc-notify',
+                    // Osano
+                    '.osano-cm-window','.osano-cm-dialog',
+                    // Klaro
+                    '.klaro',
+                    // Quantcast
+                    '#qc-cmp2-container','#qc-cmp2-ui',
+                    // TrustArc
+                    '#truste-consent-track','.truste_overlay','.truste_box_overlay',
+                    // Generelle samtykke-mønstre
+                    '[id*="cookie-consent"]','[class*="cookie-consent"]','[class*="cookie-banner"]',
+                    '[id*="cookie-banner"]','[class*="cookie-notice"]','[aria-label*="cookie" i]',
+                ];
+                for (const s of sel) document.querySelectorAll(s).forEach(e => e.remove());
+                // Bannere låser ofte scroll — lås den opp igjen.
                 document.documentElement.style.overflow = ''; document.body.style.overflow = '';
+                document.documentElement.style.position = ''; document.body.style.position = '';
             }"""
         )
         await page.evaluate(
@@ -894,10 +923,42 @@ async def check_link(context, url, cache, sem):
         return status
 
 
+# Synlig framework-feil-UI (Blazor o.l.) — alltid i DOM, men kun et problem når
+# den faktisk VISES. Returnerer en kort tekst hvis synlig, ellers null.
+JS_ERROR_UI = r"""() => {
+  const visible = (el) => {
+    if (!el) return false;
+    const s = getComputedStyle(el);
+    if (s.display === 'none' || s.visibility === 'hidden' || Number(s.opacity) === 0) return false;
+    const r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  };
+  const blazor = document.querySelector('#blazor-error-ui');
+  if (visible(blazor)) return 'Blazor-feil-UI vises: ' + (blazor.textContent || '').replace(/\s+/g,' ').trim().slice(0, 200);
+  for (const sel of ['nextjs-portal', 'vite-error-overlay', '.react-error-overlay']) {
+    if (visible(document.querySelector(sel))) return 'Feil-overlay synlig (' + sel + ')';
+  }
+  return null;
+}"""
+
+
 async def analyze(
     context, axe_src, row, column, url, args, link_cache, link_sem, site_robots, extra
 ):
     page = await context.new_page()
+    console_errors: list[str] = []
+    page_errors: list[str] = []
+
+    def _on_console(msg):
+        if msg.type == "error":
+            console_errors.append((msg.text or "").strip())
+
+    def _on_pageerror(err):
+        page_errors.append(str(err).strip())
+
+    page.on("console", _on_console)
+    page.on("pageerror", _on_pageerror)
+
     entry = {
         "row": row,
         "column": column,
@@ -910,6 +971,7 @@ async def analyze(
         "links": None,
         "seo": None,
         "geo": None,
+        "js": None,
         "markdown": None,
         "ssr": None,
         "keyboard": None,
@@ -921,6 +983,14 @@ async def analyze(
         resp = await page.goto(url, wait_until="load", timeout=args.timeout)
         entry["status"] = resp.status if resp else None
         entry["ok"] = bool(resp and resp.ok)
+
+        # Klient-side-rammeverk (Blazor WASM, React, Vue …) booter ETTER `load`:
+        # vent på at nettverket roer seg så vi analyserer den faktisk rendrede
+        # appen — ikke et tomt skall. Cappet, så sider med polling ikke henger.
+        try:
+            await page.wait_for_load_state("networkidle", timeout=8000)
+        except Exception:
+            pass
 
         entry["meta"] = await page.evaluate(JS_META)
         try:
@@ -991,6 +1061,21 @@ async def analyze(
         entry["geo"] = compute_geo(
             entry["meta"], entry["ssr"], entry["markdown"], site_robots
         )
+
+        # JS-helse: la klient-rendring rekke å feile (Blazor/SPA booter etter load),
+        # les så synlig feil-UI + akkumulerte konsoll-/sidefeil.
+        try:
+            await page.wait_for_timeout(400)
+            error_ui = await page.evaluate(JS_ERROR_UI)
+        except Exception:
+            error_ui = None
+        entry["js"] = {
+            "error_ui": error_ui,
+            "console_errors": console_errors[:20],
+            "page_errors": page_errors[:20],
+            "console_error_count": len(console_errors),
+            "page_error_count": len(page_errors),
+        }
     except Exception as e:
         entry["load_error"] = str(e)
     finally:

@@ -16,3 +16,6 @@ axe.min.js
 apps/web/public/shots/
 # Worker-logg (spawn-worker skriver hit)
 apps/worker-web/worker.log
+
+.vercel
+.env*

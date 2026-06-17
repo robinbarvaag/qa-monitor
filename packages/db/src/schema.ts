@@ -24,6 +24,17 @@ export const findingKind = pgEnum("finding_kind", [
 export const severity = pgEnum("severity", ["critical", "serious", "moderate", "minor", "info"]);
 export const annotationStatus = pgEnum("annotation_status", ["followup", "done"]);
 export const analysisKind = pgEnum("analysis_kind", ["run_summary", "page"]);
+export const checklistDiscipline = pgEnum("checklist_discipline", [
+  "a11y",
+  "seo",
+  "content",
+  "design",
+  "performance",
+  "security",
+]);
+export const checklistSource = pgEnum("checklist_source", ["curated", "auto", "custom"]);
+export const checklistStatus = pgEnum("checklist_status", ["open", "in_progress", "done", "na"]);
+export const memberRole = pgEnum("member_role", ["sales", "developer", "designer", "pm", "other"]);
 
 /* ---------- kjerne ---------- */
 export const project = pgTable("project", {
@@ -101,6 +112,7 @@ export const pageResult = pgTable(
     links: jsonb("links"),
     keyboard: jsonb("keyboard"),
     geo: jsonb("geo"),
+    js: jsonb("js"), // konsoll-/JS-feil + synlig framework-feil-UI (f.eks. Blazor)
     screenshotKey: text("screenshot_key"),
     // indekserte summer for rask filtrering/sortering uten å parse jsonb
     a11yCount: integer("a11y_count").default(0).notNull(),
@@ -157,6 +169,52 @@ export const analysis = pgTable(
   },
   (t) => ({
     runIdx: index("analysis_run_idx").on(t.runId),
+  }),
+);
+
+/* ---------- sjekklister per fagområde (tverrfaglig prosess-flate) ----------
+ * Lagrer state for kurerte/auto-poster (keyet på stabil `key`) og hele egne
+ * poster (source=custom). Kurert-katalogen og auto-utledningen bor i appen. */
+export const checklistItem = pgTable(
+  "checklist_item",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    key: text("key").notNull(), // catalog-key, auto:<…> eller custom:<uuid>
+    discipline: checklistDiscipline("discipline").notNull(),
+    source: checklistSource("source").notNull(),
+    title: text("title").notNull(),
+    status: checklistStatus("status").notNull().default("open"),
+    assignee: text("assignee"), // utgått: erstattet av `assignees`; beholdt for additiv migrasjon
+    // id-er til project_member-rader (flere ansvarlige per post)
+    assignees: jsonb("assignees").$type<string[]>().notNull().default([]),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    uq: uniqueIndex("checklist_item_project_key_uq").on(t.projectId, t.key),
+  }),
+);
+
+/* ---------- prosjekt-deltakere (register for tildeling/oppfølging) ----------
+ * Ikke ekte tilgangsstyring (ingen innlogging ennå) — en liste over hvem som er
+ * med på prosjektet, brukt som «ansvarlig»-valg i sjekklistene. */
+export const projectMember = pgTable(
+  "project_member",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    role: memberRole("role").notNull().default("other"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    projectIdx: index("project_member_project_idx").on(t.projectId),
   }),
 );
 

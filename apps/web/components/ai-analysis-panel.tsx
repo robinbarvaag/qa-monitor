@@ -65,7 +65,7 @@ export function AiAnalysisPanel({
   const buttonLabel = isLoading
     ? "Analyserer…"
     : phase === "pages"
-      ? "Per side…"
+      ? "Lagrer…"
       : initial.summary
         ? "Analyser på nytt"
         : "Analyser med AI";

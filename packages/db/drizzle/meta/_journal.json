@@ -29,6 +29,27 @@
       "when": 1781638748702,
       "tag": "0003_keen_iron_patriot",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1781727543096,
+      "tag": "0004_late_dragon_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1781730071495,
+      "tag": "0005_petite_doctor_faustus",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1781732343994,
+      "tag": "0006_flippant_morph",
+      "breakpoints": true
     }
   ]
 }

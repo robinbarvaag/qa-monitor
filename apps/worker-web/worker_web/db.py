@@ -92,9 +92,14 @@ def set_error(run_id: str, message: str) -> None:
 
 # ---------- skriving av resultater ----------
 
-def _write_results(cur, run_id, project_id: str, slug: str, data: dict) -> dict:
+def _write_results(cur, run_id, project_id: str, slug: str, data: dict, pairs=None) -> dict:
     pages = data.get("pages", [])
-    totals = {"pages": len(pages), "a11yViolations": 0, "brokenLinks": 0, "seoFails": 0, "loadErrors": 0}
+    totals = {
+        "pages": len(pages), "a11yViolations": 0, "brokenLinks": 0,
+        "seoFails": 0, "loadErrors": 0, "jsErrors": 0,
+    }
+    # migrering: rad-nr (1-basert, slik validatoren teller) → pairKey
+    row_to_key = {i + 1: p.get("pairKey") for i, p in enumerate(pairs or [])}
 
     for entry in pages:
         a11y_count, broken_count, seo_fail = _counts(entry)
@@ -103,6 +108,9 @@ def _write_results(cur, run_id, project_id: str, slug: str, data: dict) -> dict:
         totals["seoFails"] += seo_fail
         if entry.get("load_error") or not entry.get("ok"):
             totals["loadErrors"] += 1
+        js = entry.get("js") or {}
+        if js.get("error_ui") or (js.get("page_error_count") or 0) > 0:
+            totals["jsErrors"] += 1
 
         shot_key = None
         if entry.get("shot"):
@@ -110,24 +118,28 @@ def _write_results(cur, run_id, project_id: str, slug: str, data: dict) -> dict:
             if src.exists():
                 shot_key = _save_screenshot(src, slug, run_id, Path(entry["shot"]).name)
 
+        pair_key = row_to_key.get(entry.get("row")) if pairs else None
+        label = entry.get("column") if pairs else None
         cur.execute(
-            """insert into page (project_id, url) values (%s, %s)
-               on conflict (project_id, url) do update set url = excluded.url returning id""",
-            (project_id, entry["url"]),
+            """insert into page (project_id, url, pair_key, label) values (%s, %s, %s, %s)
+               on conflict (project_id, url)
+                 do update set pair_key = excluded.pair_key, label = excluded.label
+               returning id""",
+            (project_id, entry["url"], pair_key, label),
         )
         page_id = cur.fetchone()[0]
 
         cur.execute(
             """insert into page_result
                  (run_id, page_id, http_status, load_error, meta, a11y, seo, links,
-                  keyboard, geo, screenshot_key, a11y_count, broken_count, seo_fail_count)
-               values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+                  keyboard, geo, js, screenshot_key, a11y_count, broken_count, seo_fail_count)
+               values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
             (
                 run_id, page_id, entry.get("status"), entry.get("load_error"),
                 Json(entry.get("meta") or {}), Json(entry.get("a11y") or {}),
                 Json(entry.get("seo") or []), Json(entry.get("links") or {}),
                 Json(entry.get("keyboard")), Json(entry.get("geo") or {}),
-                shot_key, a11y_count, broken_count, seo_fail,
+                Json(entry.get("js")), shot_key, a11y_count, broken_count, seo_fail,
             ),
         )
 
@@ -139,12 +151,14 @@ def _write_results(cur, run_id, project_id: str, slug: str, data: dict) -> dict:
     return totals
 
 
-def write_run_results(run_id: str, project_id: str, slug: str, data: dict, workdir: Path) -> dict:
+def write_run_results(
+    run_id: str, project_id: str, slug: str, data: dict, workdir: Path, pairs=None
+) -> dict:
     """Skriver side-resultater inn i en EKSISTERENDE run (--run-id-modus)."""
     data["_workdir"] = workdir
     with _connect() as conn:
         with conn.cursor() as cur:
-            totals = _write_results(cur, run_id, project_id, slug, data)
+            totals = _write_results(cur, run_id, project_id, slug, data, pairs=pairs)
         conn.commit()
     return totals
 

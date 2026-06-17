@@ -1,0 +1,1 @@
+ALTER TABLE "page_result" ADD COLUMN "js" jsonb;

@@ -1,6 +1,6 @@
 "use client";
 
-import { saveAnnotationAction } from "@/app/actions";
+import { analyzePageAction, saveAnnotationAction } from "@/app/actions";
 import { Expandable } from "@/components/expandable";
 import { Metric, type MetricTone } from "@/components/metric";
 import { ScreenshotViewer } from "@/components/screenshot-viewer";
@@ -15,7 +15,13 @@ import {
   severityBadge,
   worstImpact,
 } from "@/lib/ui-helpers";
-import type { AnnotationEntry, AnnotationMap, AnnotationStatus, PageAnalysisContent } from "@qa/db";
+import type {
+  AnnotationEntry,
+  AnnotationMap,
+  AnnotationStatus,
+  PageAnalysisContent,
+  PageCounts,
+} from "@qa/db";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@qa/ui/accordion";
 import { Badge } from "@qa/ui/badge";
 import { Button } from "@qa/ui/button";
@@ -26,7 +32,10 @@ import { Textarea } from "@qa/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@qa/ui/tooltip";
 import {
   AlertTriangle,
+  ArrowDown,
+  ArrowUp,
   ArrowUpDown,
+  Bug,
   Check,
   ExternalLink,
   Flag,
@@ -35,6 +44,7 @@ import {
   Image as ImageIcon,
   Keyboard,
   Link2,
+  Loader2,
   Search,
   SlidersHorizontal,
   Sparkles,
@@ -191,6 +201,24 @@ function PerfBlock({ perf }: { perf: NonNullable<ReportPage["perf"]> }) {
   );
 }
 
+/** Liten ↓/↑-indikator for endring mot forrige kjøring (lavere = bedre). */
+function Delta({ current, previous }: { current: number; previous: number | undefined }) {
+  if (previous === undefined || current === previous) return null;
+  const diff = current - previous;
+  const better = diff < 0;
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 text-xs font-semibold tabular-nums ${
+        better ? "text-emerald-600 dark:text-emerald-500" : "text-destructive"
+      }`}
+      title={`Forrige kjøring: ${previous}`}
+    >
+      {better ? <ArrowDown className="size-3" /> : <ArrowUp className="size-3" />}
+      {Math.abs(diff)}
+    </span>
+  );
+}
+
 function statusRing(status: AnnotationStatus | null): string {
   if (status === "followup") return "ring-amber-400/70";
   if (status === "done") return "ring-emerald-500/60";
@@ -201,6 +229,9 @@ function PageRow({
   page,
   annotation,
   analysis,
+  prev,
+  isAnalyzing,
+  onAnalyze,
   onStatus,
   onNoteChange,
   onNoteCommit,
@@ -208,6 +239,9 @@ function PageRow({
   page: ReportPage;
   annotation: AnnotationEntry;
   analysis?: PageAnalysisContent;
+  prev?: PageCounts;
+  isAnalyzing: boolean;
+  onAnalyze: (url: string) => void;
   onStatus: (target: string, status: AnnotationStatus) => void;
   onNoteChange: (target: string, note: string) => void;
   onNoteCommit: (target: string) => void;
@@ -253,7 +287,9 @@ function PageRow({
               a11y {page.a11y.violationCount}
             </Badge>
           )}
+          <Delta current={page.a11y.violationCount} previous={prev?.a11y} />
           {broken > 0 && <Badge variant="destructive">{broken} brutt</Badge>}
+          <Delta current={broken} previous={prev?.broken} />
           {page.keyboard?.trap && (
             <Badge variant="destructive">
               <Keyboard className="size-3" />
@@ -261,6 +297,13 @@ function PageRow({
             </Badge>
           )}
           {page.seoFailCount > 0 && <Badge variant="destructive">SEO {page.seoFailCount}</Badge>}
+          <Delta current={page.seoFailCount} previous={prev?.seo} />
+          {page.js?.hasProblem && (
+            <Badge variant="destructive">
+              <Bug className="size-3" />
+              {page.js.errorUi ? "Feil-UI" : "JS-feil"}
+            </Badge>
+          )}
           {page.seoWarnCount > 0 && <Badge variant="secondary">{page.seoWarnCount} forbedr.</Badge>}
           {page.jsDependent && <Badge variant="outline">JS</Badge>}
           {analysis && (
@@ -282,6 +325,26 @@ function PageRow({
           <ExternalLink className="size-3.5" />
           {page.url}
         </a>
+
+        {!analysis && (
+          <div className="mb-6">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="border-primary/40 text-primary hover:bg-primary/10"
+              disabled={isAnalyzing}
+              onClick={() => onAnalyze(page.url)}
+            >
+              {isAnalyzing ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="size-3.5" />
+              )}
+              {isAnalyzing ? "Analyserer …" : "Analyser denne siden med AI"}
+            </Button>
+          </div>
+        )}
 
         {analysis && (
           <div className="mb-6 rounded-lg bg-primary/8 p-4 ring-1 ring-primary/20">
@@ -308,6 +371,15 @@ function PageRow({
                     </li>
                   ))}
                 </ul>
+              )}
+              {analysis.visual?.trim() && (
+                <div className="mt-3 border-t border-primary/15 pt-3">
+                  <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold tracking-wide text-primary uppercase">
+                    <ImageIcon className="size-3.5" />
+                    Visuelt (fra skjermbildet)
+                  </div>
+                  <p className="text-sm text-foreground/90">{analysis.visual}</p>
+                </div>
               )}
             </Expandable>
           </div>
@@ -472,6 +544,44 @@ function PageRow({
               </div>
             )}
           </DetailBlock>
+
+          {page.js && (page.js.hasProblem || page.js.consoleErrorCount > 0) && (
+            <DetailBlock icon={<Bug className="size-3.5" />} title="JS / konsollfeil">
+              {page.js.errorUi && (
+                <p className="rounded-md bg-destructive/10 px-2 py-1.5 text-sm text-destructive">
+                  {page.js.errorUi}
+                </p>
+              )}
+              {page.js.pageErrors.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-destructive">
+                    Uhåndterte unntak ({page.js.pageErrorCount})
+                  </p>
+                  <ul className="space-y-1 font-mono text-xs text-muted-foreground">
+                    {page.js.pageErrors.slice(0, 5).map((e, i) => (
+                      <li key={`${i}-${e.slice(0, 16)}`} className="line-clamp-2">
+                        {e}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {page.js.consoleErrorCount > 0 && (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Konsollfeil ({page.js.consoleErrorCount})
+                  </p>
+                  <ul className="space-y-1 font-mono text-xs text-muted-foreground">
+                    {page.js.consoleErrors.slice(0, 5).map((e, i) => (
+                      <li key={`${i}-${e.slice(0, 16)}`} className="line-clamp-2">
+                        {e}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </DetailBlock>
+          )}
         </div>
 
         <div className="mt-3">
@@ -503,14 +613,29 @@ export function PageExplorer({
   projectSlug,
   initialAnnotations,
   pageAnalyses,
+  previousCounts,
 }: {
   pages: ReportPage[];
   projectSlug: string;
   initialAnnotations: AnnotationMap;
   pageAnalyses: Record<string, PageAnalysisContent>;
+  previousCounts?: Record<string, PageCounts>;
 }) {
   const [annotations, setAnnotations] = useState<AnnotationMap>(initialAnnotations);
   const [, startTransition] = useTransition();
+  const [localAnalyses, setLocalAnalyses] = useState<Record<string, PageAnalysisContent>>({});
+  const [analyzing, setAnalyzing] = useState<Set<string>>(new Set());
+
+  async function handleAnalyze(url: string) {
+    setAnalyzing((prev) => new Set(prev).add(url));
+    const res = await analyzePageAction(projectSlug, url);
+    setAnalyzing((prev) => {
+      const next = new Set(prev);
+      next.delete(url);
+      return next;
+    });
+    if ("content" in res) setLocalAnalyses((prev) => ({ ...prev, [url]: res.content }));
+  }
   const [query, setQuery] = useState("");
   const [onlyA11y, setOnlyA11y] = useState(false);
   const [onlyBroken, setOnlyBroken] = useState(false);
@@ -682,7 +807,10 @@ export function PageExplorer({
                 key={p.url}
                 page={p}
                 annotation={annotations[p.url] ?? EMPTY}
-                analysis={pageAnalyses[p.url]}
+                analysis={localAnalyses[p.url] ?? pageAnalyses[p.url]}
+                prev={previousCounts?.[p.url]}
+                isAnalyzing={analyzing.has(p.url)}
+                onAnalyze={handleAnalyze}
                 onStatus={handleStatus}
                 onNoteChange={handleNoteChange}
                 onNoteCommit={handleNoteCommit}

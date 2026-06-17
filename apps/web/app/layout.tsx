@@ -30,9 +30,9 @@ export default function RootLayout({
       <body className="min-h-full">
         <SidebarProvider>
           <AppSidebar />
-          <SidebarInset>
+          <SidebarInset className="min-w-0">
             <SiteHeader />
-            <main className="flex-1">{children}</main>
+            <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
           </SidebarInset>
         </SidebarProvider>
       </body>

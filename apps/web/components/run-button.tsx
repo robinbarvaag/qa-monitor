@@ -8,7 +8,7 @@ import { Input } from "@qa/ui/input";
 import { Skeleton } from "@qa/ui/skeleton";
 import { Clock, Loader2, Play, Radar } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Info {
   hasSitemap: boolean;
@@ -31,7 +31,17 @@ function etaText(progress: { done: number; total: number } | null, startedAt: nu
     : `~${Math.ceil(remaining / 60)} min igjen`;
 }
 
-export function RunButton({ slug }: { slug: string }) {
+export function RunButton({
+  slug,
+  migration = false,
+  activeRunId = null,
+  modePref = "auto",
+}: {
+  slug: string;
+  migration?: boolean;
+  activeRunId?: string | null;
+  modePref?: "auto" | "sitemap" | "crawl";
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [inspecting, setInspecting] = useState(false);
@@ -66,7 +76,8 @@ export function RunButton({ slug }: { slug: string }) {
   }
 
   function confirmRun() {
-    const crawl = info ? !info.hasSitemap : false;
+    // modePref "auto" → la pre-flight bestemme; ellers tving valgt modus.
+    const crawl = modePref === "auto" ? (info ? !info.hasSitemap : false) : modePref === "crawl";
     const mode: RunMode = crawl ? "crawl" : "sitemap";
     const parsed = Number.parseInt(limitValue, 10);
     const limit = !crawl && limitAll ? null : Number.isFinite(parsed) && parsed > 0 ? parsed : 25;
@@ -74,18 +85,7 @@ export function RunButton({ slug }: { slug: string }) {
     void start(limit, mode);
   }
 
-  async function start(limit: number | null, mode: RunMode) {
-    setError(null);
-    setProgress(null);
-    setRunning(true);
-    setStartedAt(Date.now());
-    const res = await startRunAction(slug, { limit, mode });
-    if ("error" in res) {
-      setError(res.error);
-      setRunning(false);
-      return;
-    }
-    const runId = res.runId;
+  function pollRun(runId: string) {
     const poll = async () => {
       const st = await getRunStatusAction(runId);
       if (!st) {
@@ -104,7 +104,48 @@ export function RunButton({ slug }: { slug: string }) {
         setTimeout(poll, 1500);
       }
     };
-    setTimeout(poll, 1500);
+    void poll();
+  }
+
+  // Gjenoppta progresjon etter refresh: hvis serveren melder en pågående kjøring,
+  // start polling på nytt uten å trigge workeren igjen.
+  const resumedRef = useRef<string | null>(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: gjenoppta én gang per aktiv kjøring
+  useEffect(() => {
+    if (!activeRunId || resumedRef.current === activeRunId) return;
+    resumedRef.current = activeRunId;
+    setRunning(true);
+    setStartedAt(Date.now());
+    pollRun(activeRunId);
+  }, [activeRunId]);
+
+  /** Migrering: ingen sitemap-inspeksjon — kjør kilden som den er (mode bevares). */
+  async function startMigration() {
+    setError(null);
+    setProgress(null);
+    setRunning(true);
+    setStartedAt(Date.now());
+    const res = await startRunAction(slug);
+    if ("error" in res) {
+      setError(res.error);
+      setRunning(false);
+      return;
+    }
+    pollRun(res.runId);
+  }
+
+  async function start(limit: number | null, mode: RunMode) {
+    setError(null);
+    setProgress(null);
+    setRunning(true);
+    setStartedAt(Date.now());
+    const res = await startRunAction(slug, { limit, mode });
+    if ("error" in res) {
+      setError(res.error);
+      setRunning(false);
+      return;
+    }
+    pollRun(res.runId);
   }
 
   const eta = etaText(progress, startedAt);
@@ -124,7 +165,7 @@ export function RunButton({ slug }: { slug: string }) {
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <Button onClick={openDialog} disabled={running} size="sm">
+      <Button onClick={migration ? startMigration : openDialog} disabled={running} size="sm">
         {running ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />}
         {runLabel}
       </Button>

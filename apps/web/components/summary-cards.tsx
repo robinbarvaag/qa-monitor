@@ -2,6 +2,7 @@ import type { Report } from "@/lib/report";
 import { Card } from "@qa/ui/card";
 import {
   AlertTriangle,
+  Bug,
   FileWarning,
   Link2Off,
   ScanSearch,
@@ -55,7 +56,7 @@ function Stat({
 
 export function SummaryCards({ totals }: { totals: Report["totals"] }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
       <Stat label="Sider" value={totals.pages} icon={<ScanSearch className="size-4.5" />} />
       <Stat
         label="A11y-brudd"
@@ -86,6 +87,12 @@ export function SummaryCards({ totals }: { totals: Report["totals"] }) {
         value={totals.loadErrors}
         tone="bad"
         icon={<XOctagon className="size-4.5" />}
+      />
+      <Stat
+        label="JS-feil"
+        value={totals.jsErrors}
+        tone="bad"
+        icon={<Bug className="size-4.5" />}
       />
     </div>
   );

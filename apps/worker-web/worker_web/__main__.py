@@ -20,7 +20,33 @@ def _origin(url: str) -> str:
     return f"{p.scheme}://{p.netloc}" if p.netloc else (url or "")
 
 
+def _write_pairs_xlsx(path: Path, pairs: list[dict]) -> None:
+    """Bygger et midlertidig regneark fra migrerings-par slik at validatorens
+    Excel-modus kan kjøres uendret. Kolonner: url (gammel), ny-url + evt. extra."""
+    from openpyxl import Workbook
+
+    extra_keys: list[str] = []
+    for p in pairs:
+        for k in (p.get("extra") or {}):
+            if k not in extra_keys:
+                extra_keys.append(k)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.append(["url", "ny-url", *extra_keys])
+    for p in pairs:
+        extra = p.get("extra") or {}
+        ws.append([p.get("old", ""), p.get("new", ""), *[extra.get(k, "") for k in extra_keys]])
+    wb.save(path)
+
+
 def build_cmd(workdir: Path, config: dict) -> list[str]:
+    if config.get("mode") == "migration":
+        cmd = [sys.executable, str(REFERENCE), str(workdir / "pairs.xlsx"), "--out", str(workdir)]
+        if config.get("screenshots", True):
+            cmd += ["--screenshots"]
+        return cmd
+
     cmd = [sys.executable, str(REFERENCE), "--out", str(workdir)]
     if config.get("mode") == "crawl":
         base = config.get("base") or _origin(config.get("url", ""))
@@ -64,20 +90,31 @@ def run_validator(cmd: list[str], on_progress=None) -> None:
 def run_by_id(run_id: str) -> None:
     info = db.load_run(run_id)
     config = info["config"]
-    sitemap = config.get("url")
-    if not sitemap:
+    mode = config.get("mode")
+    pairs = None
+
+    if mode == "migration":
+        pairs = config.get("pairs") or []
+        if not pairs:
+            db.set_error(run_id, "migrerings-config mangler pairs")
+            raise SystemExit("migrerings-config mangler pairs")
+    elif not config.get("url"):
         db.set_error(run_id, "source.config mangler url")
         raise SystemExit("source.config mangler url")
 
     db.set_running(run_id)
     workdir = Path(tempfile.mkdtemp(prefix="qa-worker-"))
     try:
+        if pairs is not None:
+            _write_pairs_xlsx(workdir / "pairs.xlsx", pairs)
         run_validator(
             build_cmd(workdir, config),
             on_progress=lambda d, t: db.set_progress(run_id, d, t),
         )
         data = json.loads((workdir / "report.json").read_text(encoding="utf-8"))
-        totals = db.write_run_results(run_id, info["project_id"], info["slug"], data, workdir)
+        totals = db.write_run_results(
+            run_id, info["project_id"], info["slug"], data, workdir, pairs=pairs
+        )
         print(f"Ferdig: run={run_id} prosjekt={info['slug']} sider={totals['pages']}")
     except Exception as e:  # noqa: BLE001
         db.set_error(run_id, str(e))

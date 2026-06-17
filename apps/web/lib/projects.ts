@@ -33,6 +33,7 @@ function toRawPage(r: RawPageRow): Record<string, unknown> {
     links: r.links ?? {},
     keyboard: r.keyboard ?? null,
     geo: r.geo ?? {},
+    js: r.js ?? null,
     shot: r.screenshotKey,
   };
 }
