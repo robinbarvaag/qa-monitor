@@ -15,12 +15,15 @@ RUN pip install --no-cache-dir \
       "psycopg[binary]>=3.2" \
       "python-dotenv>=1.0"
 
-# Kildekode (hele tjeneste-mappa; .dockerignore luker bort .venv, cache, osv.)
-COPY . .
+# Build-konteksten er repo-ROTEN (Railway-monorepo), så stiene er relative til
+# den. Vi henter kun de to mappene workeren trenger, flatt inn i /app, slik at
+# `worker_web` blir et toppnivå-modul (uvicorn worker_web.server:app).
+COPY apps/worker-web/worker_web ./worker_web
+COPY apps/worker-web/reference ./reference
 
 ENV PYTHONUTF8=1 \
     PYTHONUNBUFFERED=1
 
 # Railway injiserer $PORT; default 8000 lokalt.
 EXPOSE 8000
-CMD ["sh", "-c", "uvicorn worker_web.server:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uvicorn worker_web.server:app --app-dir /app --host 0.0.0.0 --port ${PORT:-8000}"]
